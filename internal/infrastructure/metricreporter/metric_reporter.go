@@ -2,7 +2,6 @@ package metricreporter
 
 import (
 	"github.com/angryscorp/alert-metrics/internal/domain"
-	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -30,10 +29,7 @@ func (mr *HTTPMetricReporter) Report(metricType domain.MetricType, key string, v
 		mr.logger.Error("failed to report metric", "metric type", metricType, "metric name", key, "metric value", value, "error", err)
 		return
 	}
-
-	defer func(Body io.ReadCloser) {
-		var _ = Body.Close()
-	}(resp.Body)
+	_ = resp.Body.Close()
 
 	mr.logger.Info("report metric response", "metric type", metricType, "metric name", key, "metric value", value, "status", resp.Status, "status code", resp.StatusCode)
 }

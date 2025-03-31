@@ -5,7 +5,6 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 	"github.com/stretchr/testify/require"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -116,9 +115,7 @@ func TestMetricRouter(t *testing.T) {
 			// Act
 			router.ServeHTTP(w, request)
 			res := w.Result()
-			defer func(Body io.ReadCloser) {
-				_ = Body.Close()
-			}(res.Body)
+			_ = res.Body.Close()
 
 			// Assert
 			require.NotNil(t, res)
