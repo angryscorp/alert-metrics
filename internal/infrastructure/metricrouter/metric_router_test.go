@@ -42,22 +42,66 @@ func TestMetricRouter(t *testing.T) {
 		want        want
 	}{
 		{
-			name:   "Healthcheck returns 200 in case of no errors",
+			name:   "Healthcheck returns StatusOK in case of no errors",
 			method: http.MethodGet,
 			path:   "/health",
 			want: want{
-				code:        200,
+				code:        http.StatusOK,
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
 		{
-			name:        "Update returns 200 in case of no errors",
+			name:        "Update returns StatusOK in case of no errors",
 			method:      http.MethodPost,
 			path:        "/update",
 			metric:      &metric{domain.MetricTypeGauge, "test", "123"},
 			contentType: "text/plain",
 			want: want{
-				code:        200,
+				code:        http.StatusOK,
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name:        "Update returns StatusBadRequest in case of wrong method",
+			method:      http.MethodGet,
+			path:        "/update",
+			metric:      &metric{domain.MetricTypeGauge, "test", "123"},
+			contentType: "text/plain",
+			want: want{
+				code:        http.StatusBadRequest,
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name:        "Update returns StatusBadRequest in case of wrong content-type",
+			method:      http.MethodGet,
+			path:        "/update",
+			metric:      &metric{domain.MetricTypeGauge, "test", "123"},
+			contentType: "application/json",
+			want: want{
+				code:        http.StatusBadRequest,
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name:        "Update returns StatusBadRequest in case of wrong path",
+			method:      http.MethodGet,
+			path:        "/record",
+			metric:      &metric{domain.MetricTypeGauge, "test", "123"},
+			contentType: "text/plain",
+			want: want{
+				code:        http.StatusNotFound,
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name:        "Update returns StatusBadRequest in case of wrong value",
+			method:      http.MethodGet,
+			path:        "/update",
+			metric:      &metric{domain.MetricTypeCounter, "test", "1.23"},
+			contentType: "text/plain",
+			want: want{
+				code:        http.StatusBadRequest,
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
