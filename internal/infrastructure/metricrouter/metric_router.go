@@ -14,7 +14,7 @@ type MetricRouter struct {
 	logger *slog.Logger
 }
 
-func NewRouter(mux *http.ServeMux, store domain.MetricStorage) MetricRouter {
+func NewMetricRouter(mux *http.ServeMux, store domain.MetricStorage) MetricRouter {
 	router := MetricRouter{}
 	router.mux = mux
 	router.store = store
@@ -91,6 +91,8 @@ func (router MetricRouter) registerMetricUpdate() {
 
 		// All good, metrics are updated
 		router.logger.Info("metrics have been updated", "metric type", metricType, "metric name", metricName, "metric value", metricValue)
+
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 	})
 }

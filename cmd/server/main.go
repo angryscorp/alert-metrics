@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	router := metricrouter.NewRouter(
+	router := metricrouter.NewMetricRouter(
 		http.NewServeMux(),
 		metricstorage.NewMemStorage(),
 	)
