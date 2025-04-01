@@ -13,7 +13,7 @@ import (
 func main() {
 	flags, err := serverflags.SetupAndParseFlags()
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, err.Error())
+		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()
 		os.Exit(1)
 	}

@@ -15,7 +15,7 @@ import (
 func main() {
 	flags, err := agentflags.SetupAndParseFlags()
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, err.Error())
+		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()
 		os.Exit(1)
 	}
