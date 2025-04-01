@@ -4,10 +4,12 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"math/rand/v2"
 	"runtime"
+	"sync"
 	"time"
 )
 
 type RuntimeMonitor struct {
+	mu           sync.RWMutex
 	counters     map[string]int64
 	gauges       map[string]float64
 	pollInterval time.Duration
@@ -27,6 +29,9 @@ func NewRuntimeMonitor(pollInterval time.Duration) *RuntimeMonitor {
 var _ domain.MetricMonitor = (*RuntimeMonitor)(nil)
 
 func (m *RuntimeMonitor) update() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	// Read the current values
 	runtime.ReadMemStats(&m.m)
 
