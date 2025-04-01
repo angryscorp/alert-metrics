@@ -24,7 +24,7 @@ func NewHTTPMetricReporter(baseURL string, client *http.Client) *HTTPMetricRepor
 func (mr *HTTPMetricReporter) Report(metricType domain.MetricType, key string, value string) {
 	mr.logger.Info("report metric request", "metric type", metricType, "metric name", key, "metric value", value)
 
-	resp, err := mr.client.Post(mr.baseURL+"/update/"+metricType+"/"+key+"/"+value, "text/plain", nil)
+	resp, err := mr.client.Post(mr.baseURL+"/update/"+string(metricType)+"/"+key+"/"+value, "text/plain", nil)
 	if err != nil {
 		mr.logger.Error("failed to report metric", "metric type", metricType, "metric name", key, "metric value", value, "error", err)
 		return

@@ -1,126 +1,103 @@
 package metricrouter
 
 import (
-	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-type want struct {
-	code        int
-	contentType string
-}
-
-type metric struct {
-	metricType  domain.MetricType
-	metricName  string
-	metricValue string
-}
-
-func (m *metric) toString() string {
-	if m == nil {
-		return ""
-	}
-	return fmt.Sprintf("/%s/%s/%s", m.metricType, m.metricName, m.metricValue)
-}
-
 func TestMetricRouter(t *testing.T) {
-
-	router := NewMetricRouter(http.NewServeMux(), metricstorage.NewMemStorage())
+	gin.SetMode(gin.TestMode)
+	store := metricstorage.NewMemStorage()
+	_ = store.Update(domain.MetricTypeGauge, "test123", "123.456")
+	metricRouter := NewMetricRouter(gin.New(), store)
 
 	tests := []struct {
-		name        string
-		method      string
-		path        string
-		contentType string
-		metric      *metric
-		want        want
+		name     string
+		method   string
+		path     string
+		response int
 	}{
 		{
-			name:   "Healthcheck returns StatusOK in case of no errors",
-			method: http.MethodGet,
-			path:   "/health",
-			want: want{
-				code:        http.StatusOK,
-				contentType: "text/plain; charset=utf-8",
-			},
+			name:     "Healthcheck returns StatusOK in case of no errors",
+			method:   http.MethodGet,
+			path:     "/ping",
+			response: http.StatusOK,
 		},
 		{
-			name:        "Update returns StatusOK in case of no errors",
-			method:      http.MethodPost,
-			path:        "/update",
-			metric:      &metric{domain.MetricTypeGauge, "test", "123"},
-			contentType: "text/plain",
-			want: want{
-				code:        http.StatusOK,
-				contentType: "text/plain; charset=utf-8",
-			},
+			name:     "Update returns StatusOK in case of no errors",
+			method:   http.MethodPost,
+			path:     "/update/gauge/test/123",
+			response: http.StatusOK,
 		},
 		{
-			name:        "Update returns StatusBadRequest in case of wrong method",
-			method:      http.MethodGet,
-			path:        "/update",
-			metric:      &metric{domain.MetricTypeGauge, "test", "123"},
-			contentType: "text/plain",
-			want: want{
-				code:        http.StatusBadRequest,
-				contentType: "text/plain; charset=utf-8",
-			},
+			name:     "Update returns StatusBadRequest in case of wrong metric type",
+			method:   http.MethodPost,
+			path:     "/update/gauge2/test/123",
+			response: http.StatusBadRequest,
 		},
 		{
-			name:        "Update returns StatusBadRequest in case of wrong content-type",
-			method:      http.MethodGet,
-			path:        "/update",
-			metric:      &metric{domain.MetricTypeGauge, "test", "123"},
-			contentType: "application/json",
-			want: want{
-				code:        http.StatusBadRequest,
-				contentType: "text/plain; charset=utf-8",
-			},
+			name:     "Update returns StatusNotFound in case of wrong method",
+			method:   http.MethodGet,
+			path:     "/update/gauge/test/123",
+			response: http.StatusNotFound,
 		},
 		{
-			name:        "Update returns StatusBadRequest in case of wrong path",
-			method:      http.MethodGet,
-			path:        "/record",
-			metric:      &metric{domain.MetricTypeGauge, "test", "123"},
-			contentType: "text/plain",
-			want: want{
-				code:        http.StatusNotFound,
-				contentType: "text/plain; charset=utf-8",
-			},
+			name:     "Update returns StatusNotFound in case of wrong path",
+			method:   http.MethodPost,
+			path:     "/record/gauge/test/123",
+			response: http.StatusNotFound,
 		},
 		{
-			name:        "Update returns StatusBadRequest in case of wrong value",
-			method:      http.MethodGet,
-			path:        "/update",
-			metric:      &metric{domain.MetricTypeCounter, "test", "1.23"},
-			contentType: "text/plain",
-			want: want{
-				code:        http.StatusBadRequest,
-				contentType: "text/plain; charset=utf-8",
-			},
+			name:     "Update returns StatusBadRequest in case of wrong value",
+			method:   http.MethodPost,
+			path:     "/update/counter/test/123.456",
+			response: http.StatusBadRequest,
+		},
+		{
+			name:     "Value returns StatusNotFound in case of unknown metric name",
+			method:   http.MethodGet,
+			path:     "/value/counter/test",
+			response: http.StatusNotFound,
+		},
+		{
+			name:     "Value returns StatusOK in case of metric name is exist",
+			method:   http.MethodGet,
+			path:     "/value/gauge/test123",
+			response: http.StatusOK,
+		},
+		{
+			name:     "Value returns StatusNotFound in case of wrong method",
+			method:   http.MethodPost,
+			path:     "/value/gauge/test123",
+			response: http.StatusNotFound,
+		},
+		{
+			name:     "Home page returns StatusOK in case of no errors",
+			method:   http.MethodGet,
+			path:     "/",
+			response: http.StatusOK,
 		},
 	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// Arrange
-			request := httptest.NewRequest(test.method, test.path+test.metric.toString(), nil)
-			request.Header.Set("Content-Type", test.contentType)
+			request := httptest.NewRequest(test.method, test.path, nil)
 			w := httptest.NewRecorder()
 
 			// Act
-			router.ServeHTTP(w, request)
+			metricRouter.router.ServeHTTP(w, request)
 			res := w.Result()
 			_ = res.Body.Close()
 
 			// Assert
 			require.NotNil(t, res)
-			require.Equal(t, test.want.code, res.StatusCode)
-			require.Equal(t, test.want.contentType, res.Header.Get("Content-Type"))
+			require.Equal(t, test.response, res.StatusCode)
 		})
 	}
 }

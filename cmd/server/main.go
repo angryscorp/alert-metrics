@@ -3,16 +3,16 @@ package main
 import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
-	"net/http"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	router := metricrouter.NewMetricRouter(
-		http.NewServeMux(),
+	var mr = metricrouter.NewMetricRouter(
+		gin.Default(),
 		metricstorage.NewMemStorage(),
 	)
 
-	err := http.ListenAndServe(":8080", router)
+	err := mr.Run(":8080")
 	if err != nil {
 		panic(err)
 	}

@@ -2,7 +2,7 @@ package domain
 
 import "fmt"
 
-type MetricType = string
+type MetricType string
 
 const (
 	MetricTypeCounter MetricType = "counter" // new value increases the existing one
@@ -16,7 +16,7 @@ var MetricTypes = []MetricType{
 
 func NewMetricType(s string) (MetricType, error) {
 	for _, t := range MetricTypes {
-		if t == s {
+		if string(t) == s {
 			return t, nil
 		}
 	}
