@@ -3,6 +3,7 @@ module github.com/angryscorp/alert-metrics
 go 1.24.1
 
 require (
+	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/stretchr/testify v1.10.0
 )

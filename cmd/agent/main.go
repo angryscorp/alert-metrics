@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/agentflags"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/agentconfig"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricmonitor"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricreporter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricworker"
@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	flags, err := agentflags.SetupAndParseFlags()
+	flags, err := agentconfig.ParseConfig()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()

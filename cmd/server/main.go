@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/serverflags"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/serverconfig"
 	"github.com/gin-gonic/gin"
 	"os"
 )
 
 func main() {
-	flags, err := serverflags.SetupAndParseFlags()
+	flags, err := serverconfig.ParseConfig()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()

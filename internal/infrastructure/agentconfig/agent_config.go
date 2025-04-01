@@ -1,17 +1,18 @@
-package agentflags
+package agentconfig
 
 import (
 	"flag"
 	"fmt"
+	"github.com/caarlos0/env/v6"
 )
 
-type AgentFlags struct {
-	Address                 string
-	PollIntervalInSeconds   int
-	ReportIntervalInSeconds int
+type AgentConfig struct {
+	Address                 string `env:"ADDRESS"`
+	PollIntervalInSeconds   int    `env:"POLL_INTERVAL"`
+	ReportIntervalInSeconds int    `env:"REPORT_INTERVAL"`
 }
 
-func SetupAndParseFlags() (AgentFlags, error) {
+func ParseConfig() (AgentConfig, error) {
 	// Flags
 	address := flag.String("a", "localhost:8080", "HTTP agent address (default: localhost:8080)")
 	pollIntervalInSeconds := flag.Int("p", 2, "Poll interval in seconds (default: 2)")
@@ -22,12 +23,20 @@ func SetupAndParseFlags() (AgentFlags, error) {
 
 	// Unknown flags
 	if len(flag.Args()) > 0 {
-		return AgentFlags{}, fmt.Errorf("unknown flag or argument %s", flag.Args())
+		return AgentConfig{}, fmt.Errorf("unknown flag or argument %s", flag.Args())
 	}
 
-	return AgentFlags{
+	config := AgentConfig{
 		Address:                 *address,
 		ReportIntervalInSeconds: *reportIntervalInSeconds,
 		PollIntervalInSeconds:   *pollIntervalInSeconds,
-	}, nil
+	}
+
+	// ENV vars
+	err := env.Parse(&config)
+	if err != nil {
+		return AgentConfig{}, err
+	}
+
+	return config, nil
 }
