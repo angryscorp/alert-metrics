@@ -27,15 +27,16 @@ func (mw *MetricWorker) Start() {
 }
 
 func (mw *MetricWorker) sendCurrentMetrics() {
-
+	metrics := mw.metricMonitor.GetMetrics()
+	
 	// Send Gauge metrics
-	for key, value := range mw.metricMonitor.GetGauges() {
+	for key, value := range metrics.Gauges {
 		formattedValue := strconv.FormatFloat(value, 'f', -1, 64)
 		mw.metricReporter.Report(domain.MetricTypeGauge, key, formattedValue)
 	}
 
 	// Send Counter metrics
-	for key, value := range mw.metricMonitor.GetCounters() {
+	for key, value := range metrics.Counters {
 		formattedValue := strconv.FormatInt(value, 10)
 		mw.metricReporter.Report(domain.MetricTypeCounter, key, formattedValue)
 	}
