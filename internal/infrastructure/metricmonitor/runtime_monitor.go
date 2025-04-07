@@ -14,8 +14,7 @@ type RuntimeMonitor struct {
 	gauges       map[string]float64
 	pollInterval time.Duration
 	isStarted    bool
-
-	m runtime.MemStats
+	m            runtime.MemStats
 }
 
 func NewRuntimeMonitor(pollInterval time.Duration) *RuntimeMonitor {
@@ -83,10 +82,11 @@ func (m *RuntimeMonitor) Stop() {
 	m.isStarted = false
 }
 
-func (m *RuntimeMonitor) GetCounters() map[string]int64 {
-	return m.counters
-}
-
-func (m *RuntimeMonitor) GetGauges() map[string]float64 {
-	return m.gauges
+func (m *RuntimeMonitor) GetMetrics() domain.Metrics {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return domain.Metrics{
+		Counters: m.counters,
+		Gauges:   m.gauges,
+	}
 }

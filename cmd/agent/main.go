@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	flags, err := agentconfig.ParseConfig()
+	flags, err := agentconfig.NewAgentConfig()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()
