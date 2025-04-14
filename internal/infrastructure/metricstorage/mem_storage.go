@@ -86,3 +86,47 @@ func (m *MemStorage) Update(metricType domain.MetricType, key string, value stri
 
 	return nil
 }
+
+func (m *MemStorage) UpdateMetrics(metrics domain.Metrics) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	switch metrics.MType {
+	case domain.MetricTypeCounter:
+		m.counters[metrics.ID] += *metrics.Delta
+
+	case domain.MetricTypeGauge:
+		m.gauges[metrics.ID] = *metrics.Value
+
+	default:
+		return errors.New("unsupported metric type")
+	}
+
+	return nil
+}
+
+func (m *MemStorage) GetMetrics(metricType domain.MetricType, metricName string) domain.Metrics {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	res := domain.Metrics{
+		MType: metricType,
+		ID:    metricName,
+	}
+
+	switch metricType {
+	case domain.MetricTypeCounter:
+		v, ok := m.counters[metricName]
+		if ok {
+			res.Delta = &v
+		}
+
+	case domain.MetricTypeGauge:
+		v, ok := m.gauges[metricName]
+		if ok {
+			res.Value = &v
+		}
+	}
+
+	return res
+}

@@ -1,6 +1,7 @@
 package metricrouter
 
 import (
+	"errors"
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,8 @@ func NewMetricRouter(router *gin.Engine, storage domain.MetricStorage) *MetricRo
 	mr.registerGetMetric()
 	mr.registerGetAllMetrics()
 	mr.registerUpdateMetrics()
+	mr.registerFetchMetricsJSON()
+	mr.registerUpdateMetricsJSON()
 	return &mr
 }
 
@@ -58,12 +61,52 @@ func (mr *MetricRouter) registerGetAllMetrics() {
 		c.Data(http.StatusOK, "text/html", []byte(htmlContent))
 	})
 }
+
 func (mr *MetricRouter) registerUpdateMetrics() {
 	mr.router.POST("/update/:metricType/:metricName/:metricValue", func(c *gin.Context) {
 		if err := mr.update(c.Param("metricType"), c.Param("metricName"), c.Param("metricValue")); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
 		c.Status(http.StatusOK)
+	})
+}
+
+func (mr *MetricRouter) registerFetchMetricsJSON() {
+	mr.router.POST("/value/", func(c *gin.Context) {
+		if err := mr.verifyContentTypeIsJson(c.Request); err != nil {
+			c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": err.Error()})
+			return
+		}
+
+		var metrics domain.Metrics
+		if err := c.ShouldBindJSON(&metrics); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, mr.storage.GetMetrics(metrics.MType, metrics.ID))
+	})
+}
+
+func (mr *MetricRouter) registerUpdateMetricsJSON() {
+	mr.router.POST("/update/", func(c *gin.Context) {
+		if err := mr.verifyContentTypeIsJson(c.Request); err != nil {
+			c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": err.Error()})
+			return
+		}
+
+		var metrics domain.Metrics
+		if err := c.ShouldBindJSON(&metrics); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		metrics, err := mr.updateMetrics(metrics)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+
+		c.JSON(http.StatusOK, metrics)
 	})
 }
 
@@ -74,4 +117,20 @@ func (mr *MetricRouter) update(rawMetricType string, metricName string, metricVa
 	}
 
 	return mr.storage.Update(metricType, metricName, metricValue)
+}
+
+func (mr *MetricRouter) updateMetrics(metrics domain.Metrics) (domain.Metrics, error) {
+	err := mr.storage.UpdateMetrics(metrics)
+	if err != nil {
+		return domain.Metrics{}, err
+	}
+
+	return mr.storage.GetMetrics(metrics.MType, metrics.ID), nil
+}
+
+func (mr *MetricRouter) verifyContentTypeIsJson(r *http.Request) error {
+	if r.Header.Get("Content-Type") != "application/json" {
+		return errors.New("Content-Type must be application/json")
+	}
+	return nil
 }
