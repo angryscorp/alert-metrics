@@ -73,7 +73,7 @@ func (mr *MetricRouter) registerUpdateMetrics() {
 
 func (mr *MetricRouter) registerFetchMetricsJSON() {
 	mr.router.POST("/value/", func(c *gin.Context) {
-		if err := mr.verifyContentTypeIsJson(c.Request); err != nil {
+		if err := mr.verifyContentTypeIsJSON(c.Request); err != nil {
 			c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": err.Error()})
 			return
 		}
@@ -90,7 +90,7 @@ func (mr *MetricRouter) registerFetchMetricsJSON() {
 
 func (mr *MetricRouter) registerUpdateMetricsJSON() {
 	mr.router.POST("/update/", func(c *gin.Context) {
-		if err := mr.verifyContentTypeIsJson(c.Request); err != nil {
+		if err := mr.verifyContentTypeIsJSON(c.Request); err != nil {
 			c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": err.Error()})
 			return
 		}
@@ -128,7 +128,7 @@ func (mr *MetricRouter) updateMetrics(metrics domain.Metrics) (domain.Metrics, e
 	return mr.storage.GetMetrics(metrics.MType, metrics.ID), nil
 }
 
-func (mr *MetricRouter) verifyContentTypeIsJson(r *http.Request) error {
+func (mr *MetricRouter) verifyContentTypeIsJSON(r *http.Request) error {
 	if r.Header.Get("Content-Type") != "application/json" {
 		return errors.New("Content-Type must be application/json")
 	}

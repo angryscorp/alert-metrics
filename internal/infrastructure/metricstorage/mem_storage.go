@@ -116,16 +116,12 @@ func (m *MemStorage) GetMetrics(metricType domain.MetricType, metricName string)
 
 	switch metricType {
 	case domain.MetricTypeCounter:
-		v, ok := m.counters[metricName]
-		if ok {
-			res.Delta = &v
-		}
+		v := m.counters[metricName]
+		res.Delta = &v
 
 	case domain.MetricTypeGauge:
-		v, ok := m.gauges[metricName]
-		if ok {
-			res.Value = &v
-		}
+		v := m.gauges[metricName]
+		res.Value = &v
 	}
 
 	return res
