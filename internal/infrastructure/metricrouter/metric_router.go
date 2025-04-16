@@ -42,12 +42,13 @@ func (mr *MetricRouter) registerGetMetric() {
 			return
 		}
 
-		val, ok := mr.storage.Get(metricType, c.Param("metricName"))
+		metrics, ok := mr.storage.GetMetrics(metricType, c.Param("metricName"))
 		if !ok {
 			c.Status(http.StatusNotFound)
 			return
 		}
-		c.String(http.StatusOK, val)
+
+		c.String(http.StatusOK, metrics.StringValue())
 	})
 }
 
@@ -84,7 +85,12 @@ func (mr *MetricRouter) registerFetchMetricsJSON() {
 			return
 		}
 
-		c.JSON(http.StatusOK, mr.storage.GetMetrics(metrics.MType, metrics.ID))
+		res, ok := mr.storage.GetMetrics(metrics.MType, metrics.ID)
+		if ok {
+			c.JSON(http.StatusOK, res)
+		}
+		c.Header("Content-Type", "application/json")
+		c.Status(http.StatusNotFound)
 	})
 }
 
@@ -111,12 +117,12 @@ func (mr *MetricRouter) registerUpdateMetricsJSON() {
 }
 
 func (mr *MetricRouter) update(rawMetricType string, metricName string, metricValue string) error {
-	metricType, err := domain.NewMetricType(rawMetricType)
+	metrics, err := domain.NewMetrics(rawMetricType, metricName, metricValue)
 	if err != nil {
 		return err
 	}
 
-	return mr.storage.Update(metricType, metricName, metricValue)
+	return mr.storage.UpdateMetrics(*metrics)
 }
 
 func (mr *MetricRouter) updateMetrics(metrics domain.Metrics) (domain.Metrics, error) {
@@ -125,7 +131,11 @@ func (mr *MetricRouter) updateMetrics(metrics domain.Metrics) (domain.Metrics, e
 		return domain.Metrics{}, err
 	}
 
-	return mr.storage.GetMetrics(metrics.MType, metrics.ID), nil
+	res, ok := mr.storage.GetMetrics(metrics.MType, metrics.ID)
+	if !ok {
+		return domain.Metrics{}, errors.New("failed to get updated metrics")
+	}
+	return res, nil
 }
 
 func (mr *MetricRouter) verifyContentTypeIsJSON(r *http.Request) error {
