@@ -1,6 +1,8 @@
 package metricreporter
 
 import (
+	"bytes"
+	"encoding/json"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"log/slog"
 	"net/http"
@@ -12,6 +14,8 @@ type HTTPMetricReporter struct {
 	client  *http.Client
 	logger  *slog.Logger
 }
+
+var _ domain.MetricReporter = (*HTTPMetricReporter)(nil)
 
 func NewHTTPMetricReporter(baseURL string, client *http.Client) *HTTPMetricReporter {
 	return &HTTPMetricReporter{
@@ -32,4 +36,30 @@ func (mr *HTTPMetricReporter) Report(metricType domain.MetricType, key string, v
 	_ = resp.Body.Close()
 
 	mr.logger.Info("report metric response", "metric type", metricType, "metric name", key, "metric value", value, "status", resp.Status, "status code", resp.StatusCode)
+}
+
+func (mr *HTTPMetricReporter) ReportMetrics(metrics domain.Metrics) {
+	mr.logger.Info("report metric request", "metrics", metrics)
+
+	bodyBytes, err := json.Marshal(metrics)
+	if err != nil {
+		mr.logger.Error("failed to convert metrics to json", "metrics", metrics)
+		return
+	}
+
+	req, err := http.NewRequest(http.MethodPost, mr.baseURL+"/update/", bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		mr.logger.Error("failed to build post request", "json", bodyBytes, "error", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := mr.client.Do(req)
+	if err != nil {
+		mr.logger.Error("failed to report metrics", "metrics", metrics, "error", err)
+		return
+	}
+	_ = resp.Body.Close()
+
+	mr.logger.Info("report metric response", "metrics", metrics)
 }

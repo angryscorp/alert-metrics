@@ -3,10 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/httplogger"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/serverconfig"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"os"
 )
 
@@ -18,8 +20,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+
+	router := gin.New()
+	router.
+		Use(httplogger.New(logger)).
+		Use(gin.Recovery())
+
 	var mr = metricrouter.NewMetricRouter(
-		gin.Default(),
+		router,
 		metricstorage.NewMemStorage(),
 	)
 

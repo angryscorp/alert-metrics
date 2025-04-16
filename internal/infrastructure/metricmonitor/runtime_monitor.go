@@ -82,10 +82,10 @@ func (m *RuntimeMonitor) Stop() {
 	m.isStarted = false
 }
 
-func (m *RuntimeMonitor) GetMetrics() domain.Metrics {
+func (m *RuntimeMonitor) GetMetrics() domain.MetricsRawData {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return domain.Metrics{
+	return domain.MetricsRawData{
 		Counters: m.counters,
 		Gauges:   m.gauges,
 	}
