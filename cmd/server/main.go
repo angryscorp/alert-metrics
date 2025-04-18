@@ -7,6 +7,7 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/serverconfig"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/zipper"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"os"
@@ -25,7 +26,8 @@ func main() {
 	router := gin.New()
 	router.
 		Use(httplogger.New(logger)).
-		Use(gin.Recovery())
+		Use(gin.Recovery()).
+		Use(zipper.NewZipper())
 
 	var mr = metricrouter.NewMetricRouter(
 		router,
