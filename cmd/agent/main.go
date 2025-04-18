@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/agentconfig"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/gzipper"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricmonitor"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricreporter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricworker"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/zipper"
 	"net/http"
 	"os"
 	"time"
@@ -27,7 +27,7 @@ func main() {
 	mr := metricreporter.NewHTTPMetricReporter(
 		"http://"+flags.Address,
 		&http.Client{
-			Transport: zipper.NewGzipTransport(http.DefaultTransport),
+			Transport: gzipper.NewGzipTransport(http.DefaultTransport),
 		},
 	)
 

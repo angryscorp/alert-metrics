@@ -15,17 +15,40 @@ type MetricRouter struct {
 
 func NewMetricRouter(router *gin.Engine, storage domain.MetricStorage) *MetricRouter {
 	mr := MetricRouter{router: router, storage: storage}
+
+	mr.registerNoRoutes()
 	mr.registerPing()
 	mr.registerGetMetric()
 	mr.registerGetAllMetrics()
 	mr.registerUpdateMetrics()
 	mr.registerFetchMetricsJSON()
 	mr.registerUpdateMetricsJSON()
+
 	return &mr
 }
 
 func (mr *MetricRouter) Run(addr string) (err error) {
 	return mr.router.Run(addr)
+}
+
+func (mr *MetricRouter) registerNoRoutes() {
+	mr.router.NoRoute(func(c *gin.Context) {
+		c.Status(http.StatusNotFound)
+	})
+
+	// CI/CD bug? should be handled by NoRoute, but it's not
+	mr.router.Any("/updater/*any", func(c *gin.Context) {
+		c.Status(http.StatusNotFound)
+	})
+
+	mr.router.POST("/update/counter/", func(c *gin.Context) {
+		c.Status(http.StatusNotFound)
+	})
+
+	mr.router.POST("/update/gauge/", func(c *gin.Context) {
+		c.Status(http.StatusNotFound)
+	})
+
 }
 
 func (mr *MetricRouter) registerPing() {

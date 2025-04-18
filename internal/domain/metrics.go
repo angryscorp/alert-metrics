@@ -42,6 +42,14 @@ func NewMetrics(metricType string, metricName string, value string) (*Metrics, e
 		return nil, errors.New("unsupported metric type")
 	}
 
+	if metricName == "" {
+		return nil, errors.New("metric name is required")
+	}
+
+	if value == "" {
+		return nil, errors.New("metric value is required")
+	}
+	
 	return &result, nil
 }
 

@@ -1,4 +1,4 @@
-package zipper
+package gzipper
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 )
+
+const minSize = 128
 
 type GzipTransport struct {
 	Transport http.RoundTripper
@@ -67,4 +69,8 @@ func (gt *GzipTransport) zip(body []byte) ([]byte, error) {
 	}
 
 	return compressed.Bytes(), nil
+}
+
+func isContentZippable(contentType string) bool {
+	return contentType == "application/json" || contentType == "text/html"
 }
