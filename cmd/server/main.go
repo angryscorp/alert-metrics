@@ -27,7 +27,7 @@ func main() {
 	router.
 		Use(httplogger.New(logger)).
 		Use(gin.Recovery()).
-		Use(zipper.NewZipper())
+		Use(zipper.NewHandlerZipper())
 
 	var mr = metricrouter.NewMetricRouter(
 		router,

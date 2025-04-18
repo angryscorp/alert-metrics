@@ -7,6 +7,7 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricmonitor"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricreporter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricworker"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/zipper"
 	"net/http"
 	"os"
 	"time"
@@ -23,7 +24,12 @@ func main() {
 	rm := metricmonitor.NewRuntimeMonitor(time.Duration(flags.PollIntervalInSeconds) * time.Second)
 	rm.Start()
 
-	mr := metricreporter.NewHTTPMetricReporter("http://"+flags.Address, &http.Client{})
+	mr := metricreporter.NewHTTPMetricReporter(
+		"http://"+flags.Address,
+		&http.Client{
+			Transport: zipper.NewGzipTransport(http.DefaultTransport),
+		},
+	)
 
 	worker := metricworker.NewMetricWorker(rm, mr, time.Duration(flags.ReportIntervalInSeconds)*time.Second)
 	worker.Start()
