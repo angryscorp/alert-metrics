@@ -22,27 +22,6 @@ func NewMemStorage() *MemStorage {
 	}
 }
 
-func (m *MemStorage) Get(metricType domain.MetricType, key string) (string, bool) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	switch metricType {
-	case domain.MetricTypeCounter:
-		res, ok := m.counters[key]
-		if ok {
-			return strconv.FormatInt(res, 10), true
-		}
-
-	case domain.MetricTypeGauge:
-		res, ok := m.gauges[key]
-		if ok {
-			return strconv.FormatFloat(res, 'f', -1, 64), true
-		}
-	}
-
-	return "", false
-}
-
 func (m *MemStorage) GetAllMetrics() map[string]string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -57,32 +36,49 @@ func (m *MemStorage) GetAllMetrics() map[string]string {
 	return res
 }
 
-func (m *MemStorage) Update(metricType domain.MetricType, key string, value string) error {
+func (m *MemStorage) UpdateMetrics(metrics domain.Metrics) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if key == "" {
-		return errors.New("metric name is empty")
-	}
-
-	switch metricType {
+	switch metrics.MType {
 	case domain.MetricTypeCounter:
-		v, err := strconv.ParseInt(value, 10, 64)
-		if err != nil {
-			return errors.New("invalid counter value")
-		}
-		m.counters[key] += v
+		m.counters[metrics.ID] += *metrics.Delta
 
 	case domain.MetricTypeGauge:
-		v, err := strconv.ParseFloat(value, 64)
-		if err != nil {
-			return errors.New("invalid gauge value")
-		}
-		m.gauges[key] = v
+		m.gauges[metrics.ID] = *metrics.Value
 
 	default:
 		return errors.New("unsupported metric type")
 	}
 
 	return nil
+}
+
+func (m *MemStorage) GetMetrics(metricType domain.MetricType, metricName string) (domain.Metrics, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	res := domain.Metrics{
+		MType: metricType,
+		ID:    metricName,
+	}
+
+	found := false
+	switch metricType {
+	case domain.MetricTypeCounter:
+		v, ok := m.counters[metricName]
+		if ok {
+			res.Delta = &v
+			found = true
+		}
+
+	case domain.MetricTypeGauge:
+		v, ok := m.gauges[metricName]
+		if ok {
+			res.Value = &v
+			found = true
+		}
+	}
+
+	return res, found
 }
