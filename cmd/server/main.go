@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/filewriter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/httplogger"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricdumper"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
@@ -44,8 +45,11 @@ func main() {
 	}
 
 	if config.FileStoragePath != "" {
-		writer := os.Stdout // init a new writer to the file (config.fileStoragePath)
-		store = metricdumper.New(store, time.Duration(config.StoreIntervalInSeconds), writer, logger)
+		store = metricdumper.New(
+			store, time.Duration(config.StoreIntervalInSeconds)*time.Second,
+			filewriter.New(config.FileStoragePath),
+			logger,
+		)
 	}
 
 	var mr = metricrouter.NewMetricRouter(

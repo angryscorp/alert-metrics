@@ -50,7 +50,7 @@ func (m MetricStorageDumper) UpdateMetric(metric domain.Metric) error {
 	}
 
 	if m.writeIntervalInSeconds == 0 {
-		m.write(metric)
+		m.saveCurrentMetrics()
 	}
 
 	return nil
@@ -58,9 +58,7 @@ func (m MetricStorageDumper) UpdateMetric(metric domain.Metric) error {
 
 func (m MetricStorageDumper) saveCurrentMetrics() {
 	allMetrics := m.metricStorage.GetAllMetrics()
-	for _, metric := range allMetrics {
-		m.write(metric)
-	}
+	m.write(allMetrics)
 
 	if m.writeIntervalInSeconds > 0 {
 		time.Sleep(m.writeIntervalInSeconds)
@@ -68,22 +66,16 @@ func (m MetricStorageDumper) saveCurrentMetrics() {
 	}
 }
 
-func (m MetricStorageDumper) write(metric domain.Metric) {
-	data, err := json.Marshal(metric)
+func (m MetricStorageDumper) write(metrics []domain.Metric) {
+	data, err := json.Marshal(metrics)
 	if err != nil {
-		m.logger.Error().Err(err).Msg("failed to marshal metric")
+		m.logger.Error().Err(err).Msg("failed to marshal metrics")
 		return
 	}
 
 	_, err = m.writer.Write(data)
 	if err != nil {
-		m.logger.Error().Err(err).Msg("failed to write metric")
-		return
-	}
-
-	_, err = m.writer.Write([]byte("\n"))
-	if err != nil {
-		m.logger.Error().Err(err).Msg("failed to write separator")
+		m.logger.Error().Err(err).Msg("failed to write metrics")
 		return
 	}
 }

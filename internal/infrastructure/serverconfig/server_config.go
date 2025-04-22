@@ -19,7 +19,6 @@ func New() (ServerConfig, error) {
 	fileStoragePath := flag.String("f", "alert_monitoring_metrics.dump", "File storage path (default: alert_monitoring_metrics.dump)")
 	shouldRestore := flag.Bool("r", false, "Restore from file (default: false)")
 
-	// Parsing
 	flag.Parse()
 
 	// Unknown flags
