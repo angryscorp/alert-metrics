@@ -8,6 +8,7 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/httplogger"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricdumper"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricsrestorer"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/serverconfig"
 	"github.com/gin-contrib/gzip"
@@ -35,7 +36,11 @@ func main() {
 
 	var initData *[]domain.Metric
 	if config.ShouldRestore {
-		initData = nil // read from the file to initData (config.fileStoragePath)
+		restorer := metricsrestorer.New(config.FileStoragePath)
+		initData, err = restorer.Restore()
+		if err != nil {
+			panic("restoring metrics failed: " + err.Error())
+		}
 	}
 
 	var store domain.MetricStorage
