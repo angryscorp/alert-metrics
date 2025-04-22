@@ -1,7 +1,7 @@
 package domain
 
 type MetricStorage interface {
-	GetAllMetrics() map[string]string
+	GetAllMetrics() []MetricRepresentative
 	UpdateMetrics(metrics Metrics) error
 	GetMetrics(metricType MetricType, metricName string) (Metrics, bool)
 }

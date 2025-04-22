@@ -78,8 +78,8 @@ func (mr *MetricRouter) registerGetMetric() {
 func (mr *MetricRouter) registerGetAllMetrics() {
 	mr.router.GET("/", func(c *gin.Context) {
 		htmlContent := "<h3>Current metrics</h3><ul>"
-		for k, v := range mr.storage.GetAllMetrics() {
-			htmlContent += fmt.Sprintf("<li>%s: %s</li>", k, v)
+		for _, v := range mr.storage.GetAllMetrics() {
+			htmlContent += fmt.Sprintf("<li>%s</li>", v)
 		}
 		htmlContent += "</ul>"
 		c.Data(http.StatusOK, "text/html", []byte(htmlContent))

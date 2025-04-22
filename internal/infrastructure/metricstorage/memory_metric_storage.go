@@ -7,36 +7,45 @@ import (
 	"sync"
 )
 
-var _ domain.MetricStorage = (*MemStorage)(nil)
+var _ domain.MetricStorage = (*MemoryMetricStorage)(nil)
 
-type MemStorage struct {
+type MemoryMetricStorage struct {
 	mu       sync.RWMutex
 	gauges   map[string]float64
 	counters map[string]int64
 }
 
-func NewMemStorage() *MemStorage {
-	return &MemStorage{
+func NewMemStorage() *MemoryMetricStorage {
+	return &MemoryMetricStorage{
 		gauges:   make(map[string]float64),
 		counters: make(map[string]int64),
 	}
 }
 
-func (m *MemStorage) GetAllMetrics() map[string]string {
+func (m *MemoryMetricStorage) GetAllMetrics() []domain.MetricRepresentative {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	res := make(map[string]string)
+	res := make([]domain.MetricRepresentative, 0)
 	for key, value := range m.gauges {
-		res[string(domain.MetricTypeGauge)+"."+key] = strconv.FormatFloat(value, 'f', -1, 64)
+		res = append(res, domain.MetricRepresentative{
+			Type:  domain.MetricTypeGauge,
+			Name:  key,
+			Value: strconv.FormatFloat(value, 'f', -1, 64),
+		})
 	}
 	for key, value := range m.counters {
-		res[string(domain.MetricTypeCounter)+"."+key] = strconv.FormatInt(value, 10)
+		res = append(res, domain.MetricRepresentative{
+			Type:  domain.MetricTypeCounter,
+			Name:  key,
+			Value: strconv.FormatInt(value, 10),
+		})
 	}
+
 	return res
 }
 
-func (m *MemStorage) UpdateMetrics(metrics domain.Metrics) error {
+func (m *MemoryMetricStorage) UpdateMetrics(metrics domain.Metrics) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -54,7 +63,7 @@ func (m *MemStorage) UpdateMetrics(metrics domain.Metrics) error {
 	return nil
 }
 
-func (m *MemStorage) GetMetrics(metricType domain.MetricType, metricName string) (domain.Metrics, bool) {
+func (m *MemoryMetricStorage) GetMetrics(metricType domain.MetricType, metricName string) (domain.Metrics, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
