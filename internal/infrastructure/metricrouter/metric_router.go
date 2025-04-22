@@ -117,6 +117,7 @@ func (mr *MetricRouter) registerFetchMetricsJSON() {
 		res, ok := mr.storage.GetMetric(metrics.MType, metrics.ID)
 		if ok {
 			c.JSON(http.StatusOK, res)
+			return
 		}
 		c.Header("Content-Type", "application/json")
 		c.Status(http.StatusNotFound)

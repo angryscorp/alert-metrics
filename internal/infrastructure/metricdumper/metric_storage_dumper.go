@@ -11,23 +11,23 @@ import (
 var _ domain.MetricStorage = (*MetricStorageDumper)(nil)
 
 type MetricStorageDumper struct {
-	metricStorage          domain.MetricStorage
-	writeIntervalInSeconds time.Duration
-	writer                 io.Writer
-	logger                 zerolog.Logger
+	metricStorage domain.MetricStorage
+	writeInterval time.Duration
+	writer        io.Writer
+	logger        zerolog.Logger
 }
 
 func New(
 	metricStorage domain.MetricStorage,
-	writeIntervalInSeconds time.Duration,
+	writeInterval time.Duration,
 	writer io.Writer,
 	logger zerolog.Logger,
 ) *MetricStorageDumper {
 	dumper := &MetricStorageDumper{
-		metricStorage:          metricStorage,
-		writeIntervalInSeconds: writeIntervalInSeconds,
-		writer:                 writer,
-		logger:                 logger,
+		metricStorage: metricStorage,
+		writeInterval: writeInterval,
+		writer:        writer,
+		logger:        logger,
 	}
 
 	go dumper.saveCurrentMetrics()
@@ -49,8 +49,11 @@ func (m MetricStorageDumper) UpdateMetric(metric domain.Metric) error {
 		return err
 	}
 
-	if m.writeIntervalInSeconds == 0 {
-		m.saveCurrentMetrics()
+	if m.writeInterval > 0 {
+		go func() {
+			time.Sleep(m.writeInterval)
+			go m.saveCurrentMetrics()
+		}()
 	}
 
 	return nil
@@ -60,8 +63,8 @@ func (m MetricStorageDumper) saveCurrentMetrics() {
 	allMetrics := m.metricStorage.GetAllMetrics()
 	m.write(allMetrics)
 
-	if m.writeIntervalInSeconds > 0 {
-		time.Sleep(m.writeIntervalInSeconds)
+	if m.writeInterval > 0 {
+		time.Sleep(m.writeInterval)
 		go m.saveCurrentMetrics()
 	}
 }

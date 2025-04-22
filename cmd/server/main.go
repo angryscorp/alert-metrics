@@ -36,11 +36,8 @@ func main() {
 
 	var initData *[]domain.Metric
 	if config.ShouldRestore {
-		restorer := metricsrestorer.New(config.FileStoragePath)
-		initData, err = restorer.Restore()
-		if err != nil {
-			panic("restoring metrics failed: " + err.Error())
-		}
+		restorer := metricsrestorer.New(config.FileStoragePath, logger)
+		initData = restorer.Restore()
 	}
 
 	var store domain.MetricStorage
@@ -51,7 +48,8 @@ func main() {
 
 	if config.FileStoragePath != "" {
 		store = metricdumper.New(
-			store, time.Duration(config.StoreIntervalInSeconds)*time.Second,
+			store,
+			time.Duration(config.StoreIntervalInSeconds)*time.Second,
 			filewriter.New(config.FileStoragePath),
 			logger,
 		)
