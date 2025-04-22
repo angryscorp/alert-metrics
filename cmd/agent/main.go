@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	flags, err := agentconfig.NewAgentConfig()
+	flags, err := agentconfig.New()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()

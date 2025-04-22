@@ -13,7 +13,7 @@ type ServerConfig struct {
 	ShouldRestore          bool   `env:"RESTORE"`
 }
 
-func ParseConfig() (ServerConfig, error) {
+func New() (ServerConfig, error) {
 	address := flag.String("a", "localhost:8080", "HTTP server address (default: localhost:8080)")
 	storeIntervalInSeconds := flag.Int("i", 300, "Store interval in seconds (default: 300)")
 	fileStoragePath := flag.String("f", "alert_monitoring_metrics.dump", "File storage path (default: alert_monitoring_metrics.dump)")
