@@ -38,7 +38,7 @@ func (mr *HTTPMetricReporter) Report(metricType domain.MetricType, key string, v
 	mr.logger.Info("report metric response", "metric type", metricType, "metric name", key, "metric value", value, "status", resp.Status, "status code", resp.StatusCode)
 }
 
-func (mr *HTTPMetricReporter) ReportMetrics(metrics domain.Metrics) {
+func (mr *HTTPMetricReporter) ReportMetrics(metrics domain.Metric) {
 	mr.logger.Info("report metric request", "metrics", metrics)
 
 	bodyBytes, err := json.Marshal(metrics)

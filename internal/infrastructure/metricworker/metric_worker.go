@@ -30,7 +30,7 @@ func (mw *MetricWorker) sendCurrentMetrics() {
 
 	// Send Gauge metrics
 	for key, value := range metrics.Gauges {
-		m := domain.Metrics{
+		m := domain.Metric{
 			ID:    key,
 			MType: domain.MetricTypeGauge,
 			Value: &value,
@@ -40,7 +40,7 @@ func (mw *MetricWorker) sendCurrentMetrics() {
 
 	// Send Counter metrics
 	for key, value := range metrics.Counters {
-		m := domain.Metrics{
+		m := domain.Metric{
 			ID:    key,
 			MType: domain.MetricTypeCounter,
 			Delta: &value,

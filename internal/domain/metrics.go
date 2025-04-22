@@ -5,20 +5,20 @@ import (
 	"strconv"
 )
 
-type Metrics struct {
+type Metric struct {
 	ID    string     `json:"id"`
 	MType MetricType `json:"type"`
 	Delta *int64     `json:"delta,omitempty"`
 	Value *float64   `json:"value,omitempty"`
 }
 
-func NewMetrics(metricType string, metricName string, value string) (*Metrics, error) {
+func NewMetrics(metricType string, metricName string, value string) (*Metric, error) {
 	mType, err := NewMetricType(metricType)
 	if err != nil {
 		return nil, err
 	}
 
-	result := Metrics{
+	result := Metric{
 		ID:    metricName,
 		MType: mType,
 	}
@@ -49,11 +49,11 @@ func NewMetrics(metricType string, metricName string, value string) (*Metrics, e
 	if value == "" {
 		return nil, errors.New("metric value is required")
 	}
-	
+
 	return &result, nil
 }
 
-func (m Metrics) StringValue() string {
+func (m Metric) StringValue() string {
 	switch m.MType {
 	case MetricTypeGauge:
 		return strconv.FormatFloat(*m.Value, 'f', -1, 64)

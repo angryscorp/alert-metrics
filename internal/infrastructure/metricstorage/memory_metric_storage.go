@@ -15,11 +15,22 @@ type MemoryMetricStorage struct {
 	counters map[string]int64
 }
 
-func NewMemStorage() *MemoryMetricStorage {
-	return &MemoryMetricStorage{
+func New(initialData *[]domain.Metric) (*MemoryMetricStorage, error) {
+	store := &MemoryMetricStorage{
 		gauges:   make(map[string]float64),
 		counters: make(map[string]int64),
 	}
+
+	if initialData == nil {
+		return store, nil
+	}
+
+	for _, v := range *initialData {
+		if err := store.UpdateMetrics(v); err != nil {
+			return nil, err
+		}
+	}
+	return store, nil
 }
 
 func (m *MemoryMetricStorage) GetAllMetrics() domain.MetricRepresentatives {
@@ -45,7 +56,7 @@ func (m *MemoryMetricStorage) GetAllMetrics() domain.MetricRepresentatives {
 	return res
 }
 
-func (m *MemoryMetricStorage) UpdateMetrics(metrics domain.Metrics) error {
+func (m *MemoryMetricStorage) UpdateMetrics(metrics domain.Metric) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -63,11 +74,11 @@ func (m *MemoryMetricStorage) UpdateMetrics(metrics domain.Metrics) error {
 	return nil
 }
 
-func (m *MemoryMetricStorage) GetMetrics(metricType domain.MetricType, metricName string) (domain.Metrics, bool) {
+func (m *MemoryMetricStorage) GetMetrics(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	res := domain.Metrics{
+	res := domain.Metric{
 		MType: metricType,
 		ID:    metricName,
 	}

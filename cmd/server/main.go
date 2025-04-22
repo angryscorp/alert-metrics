@@ -29,9 +29,14 @@ func main() {
 		Use(gin.Recovery()).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
+	store, err := metricstorage.New(nil)
+	if err != nil {
+		panic("initializing metric storage failed: " + err.Error())
+	}
+
 	var mr = metricrouter.NewMetricRouter(
 		router,
-		metricstorage.NewMemStorage(),
+		store,
 	)
 
 	err = mr.Run(flags.Address)
