@@ -22,7 +22,7 @@ func NewMemStorage() *MemoryMetricStorage {
 	}
 }
 
-func (m *MemoryMetricStorage) GetAllMetrics() []domain.MetricRepresentative {
+func (m *MemoryMetricStorage) GetAllMetrics() domain.MetricRepresentatives {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
