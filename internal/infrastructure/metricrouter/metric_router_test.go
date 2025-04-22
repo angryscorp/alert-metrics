@@ -14,7 +14,7 @@ func TestMetricRouter(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	store := metricstorage.New()
 	val := 123.456
-	_ = store.UpdateMetrics(domain.Metric{
+	_ = store.UpdateMetric(domain.Metric{
 		ID:    "test123",
 		MType: domain.MetricTypeGauge,
 		Value: &val,

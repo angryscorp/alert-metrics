@@ -3,7 +3,6 @@ package metricstorage
 import (
 	"errors"
 	"github.com/angryscorp/alert-metrics/internal/domain"
-	"strconv"
 	"sync"
 )
 
@@ -26,37 +25,37 @@ func New(initialData *[]domain.Metric) (*MemoryMetricStorage, error) {
 	}
 
 	for _, v := range *initialData {
-		if err := store.UpdateMetrics(v); err != nil {
+		if err := store.UpdateMetric(v); err != nil {
 			return nil, err
 		}
 	}
 	return store, nil
 }
 
-func (m *MemoryMetricStorage) GetAllMetrics() domain.MetricRepresentatives {
+func (m *MemoryMetricStorage) GetAllMetrics() []domain.Metric {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	res := make([]domain.MetricRepresentative, 0)
+	res := make([]domain.Metric, 0)
 	for key, value := range m.gauges {
-		res = append(res, domain.MetricRepresentative{
-			Type:  domain.MetricTypeGauge,
-			Name:  key,
-			Value: strconv.FormatFloat(value, 'f', -1, 64),
+		res = append(res, domain.Metric{
+			ID:    key,
+			MType: domain.MetricTypeGauge,
+			Value: &value,
 		})
 	}
 	for key, value := range m.counters {
-		res = append(res, domain.MetricRepresentative{
-			Type:  domain.MetricTypeCounter,
-			Name:  key,
-			Value: strconv.FormatInt(value, 10),
+		res = append(res, domain.Metric{
+			ID:    key,
+			MType: domain.MetricTypeCounter,
+			Delta: &value,
 		})
 	}
 
 	return res
 }
 
-func (m *MemoryMetricStorage) UpdateMetrics(metrics domain.Metric) error {
+func (m *MemoryMetricStorage) UpdateMetric(metrics domain.Metric) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -74,7 +73,7 @@ func (m *MemoryMetricStorage) UpdateMetrics(metrics domain.Metric) error {
 	return nil
 }
 
-func (m *MemoryMetricStorage) GetMetrics(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
+func (m *MemoryMetricStorage) GetMetric(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

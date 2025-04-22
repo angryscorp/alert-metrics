@@ -16,6 +16,18 @@ func (m MetricRepresentative) String() string {
 
 type MetricRepresentatives []MetricRepresentative
 
+func NewMetricRepresentatives(metrics []Metric) MetricRepresentatives {
+	res := make(MetricRepresentatives, len(metrics))
+	for i, metric := range metrics {
+		res[i] = MetricRepresentative{
+			Type:  metric.MType,
+			Name:  metric.ID,
+			Value: metric.StringValue(),
+		}
+	}
+	return res
+}
+
 func (m MetricRepresentatives) SortByName() MetricRepresentatives {
 	slices.SortFunc(m, func(a, b MetricRepresentative) int {
 		if a.Name > b.Name {
