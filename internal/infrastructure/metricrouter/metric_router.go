@@ -77,7 +77,7 @@ func (mr *MetricRouter) registerGetMetric() {
 
 func (mr *MetricRouter) registerGetAllMetrics() {
 	mr.router.GET("/", func(c *gin.Context) {
-		allMetrics := mr.storage.GetAllMetrics() //.SortByName()
+		allMetrics := mr.storage.GetAllMetrics()
 		if len(allMetrics) == 0 {
 			c.Data(http.StatusOK, "text/html", []byte("<h3>No data</h3>"))
 			return

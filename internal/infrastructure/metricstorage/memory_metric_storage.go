@@ -14,22 +14,11 @@ type MemoryMetricStorage struct {
 	counters map[string]int64
 }
 
-func New(initialData *[]domain.Metric) (*MemoryMetricStorage, error) {
-	store := &MemoryMetricStorage{
+func NewMemoryMetricStorage() *MemoryMetricStorage {
+	return &MemoryMetricStorage{
 		gauges:   make(map[string]float64),
 		counters: make(map[string]int64),
 	}
-
-	if initialData == nil {
-		return store, nil
-	}
-
-	for _, v := range *initialData {
-		if err := store.UpdateMetric(v); err != nil {
-			return nil, err
-		}
-	}
-	return store, nil
 }
 
 func (m *MemoryMetricStorage) GetAllMetrics() []domain.Metric {

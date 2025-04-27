@@ -12,7 +12,7 @@ import (
 
 func TestMetricRouter(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	store, _ := metricstorage.New(nil)
+	store := metricstorage.NewMemoryMetricStorage()
 	val := 123.456
 	_ = store.UpdateMetric(domain.Metric{
 		ID:    "test123",

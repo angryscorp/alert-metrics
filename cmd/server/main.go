@@ -4,11 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/filewriter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/httplogger"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricdumper"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricsrestorer"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/serverconfig"
 	"github.com/gin-contrib/gzip"
@@ -34,24 +31,16 @@ func main() {
 		Use(gin.Recovery()).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
-	var initData *[]domain.Metric
-	if config.ShouldRestore {
-		restorer := metricsrestorer.New(config.FileStoragePath, logger)
-		initData = restorer.Restore()
-	}
-
 	var store domain.MetricStorage
-	store, err = metricstorage.New(initData)
-	if err != nil {
-		panic("initializing metric storage failed: " + err.Error())
-	}
+	store = metricstorage.NewMemoryMetricStorage()
 
 	if config.FileStoragePath != "" {
-		store = metricdumper.New(
+		store = metricstorage.NewFileMetricStorage(
 			store,
-			time.Duration(config.StoreIntervalInSeconds)*time.Second,
-			filewriter.New(config.FileStoragePath),
 			logger,
+			time.Duration(config.StoreIntervalInSeconds)*time.Second,
+			config.FileStoragePath,
+			config.ShouldRestore,
 		)
 	}
 
