@@ -12,13 +12,11 @@ type AgentConfig struct {
 	ReportIntervalInSeconds int    `env:"REPORT_INTERVAL"`
 }
 
-func NewAgentConfig() (AgentConfig, error) {
-	// Flags
+func New() (AgentConfig, error) {
 	address := flag.String("a", "localhost:8080", "HTTP agent address (default: localhost:8080)")
 	pollIntervalInSeconds := flag.Int("p", 2, "Poll interval in seconds (default: 2)")
 	reportIntervalInSeconds := flag.Int("r", 10, "Report interval in seconds (default: 10)")
 
-	// Parsing
 	flag.Parse()
 
 	// Unknown flags

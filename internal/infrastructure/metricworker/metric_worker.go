@@ -2,7 +2,6 @@ package metricworker
 
 import (
 	"github.com/angryscorp/alert-metrics/internal/domain"
-	"strconv"
 	"time"
 )
 
@@ -28,17 +27,25 @@ func (mw *MetricWorker) Start() {
 
 func (mw *MetricWorker) sendCurrentMetrics() {
 	metrics := mw.metricMonitor.GetMetrics()
-	
+
 	// Send Gauge metrics
 	for key, value := range metrics.Gauges {
-		formattedValue := strconv.FormatFloat(value, 'f', -1, 64)
-		mw.metricReporter.Report(domain.MetricTypeGauge, key, formattedValue)
+		m := domain.Metric{
+			ID:    key,
+			MType: domain.MetricTypeGauge,
+			Value: &value,
+		}
+		mw.metricReporter.ReportMetrics(m)
 	}
 
 	// Send Counter metrics
 	for key, value := range metrics.Counters {
-		formattedValue := strconv.FormatInt(value, 10)
-		mw.metricReporter.Report(domain.MetricTypeCounter, key, formattedValue)
+		m := domain.Metric{
+			ID:    key,
+			MType: domain.MetricTypeCounter,
+			Delta: &value,
+		}
+		mw.metricReporter.ReportMetrics(m)
 	}
 
 	// Report interval

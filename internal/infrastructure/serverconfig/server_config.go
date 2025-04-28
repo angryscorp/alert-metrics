@@ -7,13 +7,18 @@ import (
 )
 
 type ServerConfig struct {
-	Address string `env:"ADDRESS"`
+	Address                string `env:"ADDRESS"`
+	StoreIntervalInSeconds int    `env:"STORE_INTERVAL"`
+	FileStoragePath        string `env:"FILE_STORAGE_PATH"`
+	ShouldRestore          bool   `env:"RESTORE"`
 }
 
-func ParseConfig() (ServerConfig, error) {
+func New() (ServerConfig, error) {
 	address := flag.String("a", "localhost:8080", "HTTP server address (default: localhost:8080)")
+	storeIntervalInSeconds := flag.Int("i", 300, "Store interval in seconds (default: 300)")
+	fileStoragePath := flag.String("f", "alert_monitoring_metrics.dump", "File storage path (default: alert_monitoring_metrics.dump)")
+	shouldRestore := flag.Bool("r", false, "Restore from file (default: false)")
 
-	// Parsing
 	flag.Parse()
 
 	// Unknown flags
@@ -21,7 +26,12 @@ func ParseConfig() (ServerConfig, error) {
 		return ServerConfig{}, fmt.Errorf("unknown flag or argument %s", flag.Args())
 	}
 
-	config := ServerConfig{Address: *address}
+	config := ServerConfig{
+		Address:                *address,
+		StoreIntervalInSeconds: *storeIntervalInSeconds,
+		FileStoragePath:        *fileStoragePath,
+		ShouldRestore:          *shouldRestore,
+	}
 
 	// ENV vars
 	err := env.Parse(&config)
