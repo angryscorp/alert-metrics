@@ -22,3 +22,6 @@ vendor/
 
 # Dumps
 *.dump
+
+# Local test
+metricstest-darwin-arm64
