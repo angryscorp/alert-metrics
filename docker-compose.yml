@@ -1,0 +1,28 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: cmd/server/Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    restart: unless-stopped
+    environment:
+      - ADDRESS=:8080
+
+  agent:
+    build:
+      context: .
+      dockerfile: cmd/agent/Dockerfile
+    depends_on:
+      - server
+    networks:
+      - app-network
+    restart: unless-stopped
+    environment:
+      - ADDRESS=server:8080
+
+networks:
+  app-network:
+    driver: bridge

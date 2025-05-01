@@ -25,3 +25,6 @@ vendor/
 
 # Local test
 metricstest-darwin-arm64
+
+# Docker
+.docker/data/

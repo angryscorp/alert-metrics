@@ -1,0 +1,9 @@
+.git
+.github
+.gitignore
+*.md
+.idea
+.vscode
+*.log
+*.pid
+*.dump
