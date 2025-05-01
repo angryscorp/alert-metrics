@@ -2,6 +2,7 @@ package metricrouter
 
 import (
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/dbmetricstorage"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ func TestMetricRouter(t *testing.T) {
 		MType: domain.MetricTypeGauge,
 		Value: &val,
 	})
-	metricRouter := NewMetricRouter(gin.New(), store)
+	metricRouter := NewMetricRouter(gin.New(), store, dbmetricstorage.Mock{})
 
 	tests := []struct {
 		name     string
@@ -31,7 +32,7 @@ func TestMetricRouter(t *testing.T) {
 			name:     "Healthcheck returns StatusOK in case of no errors",
 			method:   http.MethodGet,
 			path:     "/ping",
-			response: http.StatusOK,
+			response: http.StatusInternalServerError,
 		},
 		{
 			name:     "Update returns StatusOK in case of no errors",

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/dbmetricstorage"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/httplogger"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
@@ -44,9 +45,20 @@ func main() {
 		)
 	}
 
+	var db interface{ Ping() error }
+	if config.DatabaseDSN != "" {
+		db, err = dbmetricstorage.New(config.DatabaseDSN)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		db = dbmetricstorage.Mock{}
+	}
+
 	var mr = metricrouter.NewMetricRouter(
 		router,
 		store,
+		db,
 	)
 
 	err = mr.Run(config.Address)
