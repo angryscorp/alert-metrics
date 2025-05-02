@@ -45,7 +45,7 @@ func main() {
 
 func storeSelector(config serverconfig.ServerConfig, logger *zerolog.Logger) (domain.MetricStorage, error) {
 	if config.DatabaseDSN != "" {
-		return dbmetricstorage.New(config.DatabaseDSN)
+		return dbmetricstorage.New(config.DatabaseDSN, logger)
 	}
 
 	if config.FileStoragePath != "" {

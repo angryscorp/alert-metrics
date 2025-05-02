@@ -2,19 +2,23 @@ package dbmetricstorage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/zerolog"
 	"time"
 )
 
 type PostgresMetricsStorage struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	logger *zerolog.Logger
 }
 
 var _ domain.MetricStorage = (*PostgresMetricsStorage)(nil)
 
-func New(dsn string) (*PostgresMetricsStorage, error) {
+func New(dsn string, logger *zerolog.Logger) (*PostgresMetricsStorage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -32,25 +36,78 @@ func New(dsn string) (*PostgresMetricsStorage, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	return &PostgresMetricsStorage{pool: pool}, nil
+	return &PostgresMetricsStorage{pool: pool, logger: logger}, nil
 }
 
 func (s PostgresMetricsStorage) GetAllMetrics() []domain.Metric {
-	//TODO implement me
-	//panic("implement me")
-	return []domain.Metric{}
+	metrics := make([]domain.Metric, 0)
+
+	rows, err := s.pool.Query(context.TODO(), `
+		SELECT * FROM metrics
+		`,
+	)
+	if err != nil {
+		s.logger.Error().Err(err).Msg("failed to query metrics")
+		return metrics
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var metric domain.Metric
+		err := rows.Scan(&metric.ID, &metric.MType, &metric.Value, &metric.Delta)
+		if err != nil {
+			panic(err)
+		}
+		metrics = append(metrics, metric)
+	}
+
+	if err := rows.Err(); err != nil {
+		s.logger.Error().Err(err).Msg("failed to scan metrics")
+	}
+
+	return metrics
 }
 
 func (s PostgresMetricsStorage) UpdateMetric(metric domain.Metric) error {
-	//TODO implement me
-	//panic("implement me")
+	_, err := s.pool.Exec(context.TODO(), `
+        INSERT INTO metrics (id, type, value_delta, value_gauge)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (id, type) DO UPDATE SET
+            value_delta = EXCLUDED.value_delta,
+            value_gauge = EXCLUDED.value_gauge
+        `,
+		metric.ID, metric.MType, metric.Value, metric.Delta,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to update metric: %w", err)
+	}
+
 	return nil
 }
 
 func (s PostgresMetricsStorage) GetMetric(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
-	//TODO implement me
-	//panic("implement me")
-	return domain.Metric{}, false
+	row := s.pool.QueryRow(context.TODO(), `
+		SELECT value_delta, value_gauge 
+		FROM metrics 
+	    WHERE 
+	        id = $1 
+	      AND 
+	        type = $2
+		`,
+		metricName, metricType,
+	)
+
+	metric := domain.Metric{ID: metricName, MType: metricType}
+	err := row.Scan(&metric.Value, &metric.Delta)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.Metric{}, false
+		}
+	}
+
+	return metric, true
 }
 
 func (s PostgresMetricsStorage) Ping() error {
