@@ -5,5 +5,3 @@ CREATE TABLE IF NOT EXISTS metrics (
     value_gauge DOUBLE PRECISION,
     PRIMARY KEY (id, type)
 );
-
-CREATE INDEX IF NOT EXISTS idx_metrics_id_type ON metrics (id, type);

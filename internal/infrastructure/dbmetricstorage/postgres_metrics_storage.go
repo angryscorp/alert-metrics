@@ -36,7 +36,12 @@ func New(dsn string, logger *zerolog.Logger) (*PostgresMetricsStorage, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	return &PostgresMetricsStorage{pool: pool, logger: logger}, nil
+	store := &PostgresMetricsStorage{pool: pool, logger: logger}
+	if err := store.prepareDataTable(); err != nil {
+		return nil, fmt.Errorf("failed to prepare data table: %w", err)
+	}
+
+	return store, nil
 }
 
 func (s PostgresMetricsStorage) GetAllMetrics() []domain.Metric {
@@ -112,4 +117,19 @@ func (s PostgresMetricsStorage) GetMetric(metricType domain.MetricType, metricNa
 
 func (s PostgresMetricsStorage) Ping() error {
 	return s.pool.Ping(context.TODO())
+}
+
+func (s PostgresMetricsStorage) prepareDataTable() error {
+	_, err := s.pool.Exec(context.TODO(), `
+        CREATE TABLE IF NOT EXISTS metrics (
+		    id VARCHAR(255) NOT NULL,
+    		type VARCHAR(50) NOT NULL,
+    		value_delta BIGINT,
+    		value_gauge DOUBLE PRECISION,
+    		PRIMARY KEY (id, type)
+		);
+        `,
+	)
+
+	return err
 }
