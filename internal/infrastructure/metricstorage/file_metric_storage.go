@@ -86,6 +86,10 @@ func (s FileMetricStorage) UpdateMetric(metric domain.Metric) error {
 	return nil
 }
 
+func (s FileMetricStorage) Ping() error {
+	return nil
+}
+
 func (s FileMetricStorage) saveCurrentMetrics() {
 	allMetrics := s.storage.GetAllMetrics()
 	s.writeToFile(allMetrics)

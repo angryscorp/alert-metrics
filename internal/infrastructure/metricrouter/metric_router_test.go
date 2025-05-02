@@ -20,7 +20,7 @@ func TestMetricRouter(t *testing.T) {
 		MType: domain.MetricTypeGauge,
 		Value: &val,
 	})
-	metricRouter := NewMetricRouter(gin.New(), store, dbmetricstorage.Mock{})
+	metricRouter := New(gin.New(), store, dbmetricstorage.Mock{})
 
 	tests := []struct {
 		name     string

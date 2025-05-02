@@ -26,43 +26,37 @@ func main() {
 
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
+	store, err := storeSelector(config, &logger)
+	if err != nil {
+		panic(err)
+	}
+
 	router := gin.New()
 	router.
 		Use(httplogger.New(logger)).
 		Use(gin.Recovery()).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
-	var store domain.MetricStorage
-	store = metricstorage.NewMemoryMetricStorage()
+	mr := metricrouter.New(router, store)
+	if err = mr.Run(config.Address); err != nil {
+		panic(err)
+	}
+}
+
+func storeSelector(config serverconfig.ServerConfig, logger *zerolog.Logger) (domain.MetricStorage, error) {
+	if config.DatabaseDSN != "" {
+		return dbmetricstorage.New(config.DatabaseDSN)
+	}
 
 	if config.FileStoragePath != "" {
-		store = metricstorage.NewFileMetricStorage(
-			store,
-			logger,
+		return metricstorage.NewFileMetricStorage(
+			metricstorage.NewMemoryMetricStorage(),
+			*logger,
 			time.Duration(config.StoreIntervalInSeconds)*time.Second,
 			config.FileStoragePath,
 			config.ShouldRestore,
-		)
+		), nil
 	}
 
-	var db interface{ Ping() error }
-	if config.DatabaseDSN != "" {
-		db, err = dbmetricstorage.New(config.DatabaseDSN)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		db = dbmetricstorage.Mock{}
-	}
-
-	var mr = metricrouter.NewMetricRouter(
-		router,
-		store,
-		db,
-	)
-
-	err = mr.Run(config.Address)
-	if err != nil {
-		panic(err)
-	}
+	return metricstorage.NewMemoryMetricStorage(), nil
 }

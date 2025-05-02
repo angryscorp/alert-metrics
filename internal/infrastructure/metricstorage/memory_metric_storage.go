@@ -90,3 +90,7 @@ func (m *MemoryMetricStorage) GetMetric(metricType domain.MetricType, metricName
 
 	return res, found
 }
+
+func (m *MemoryMetricStorage) Ping() error {
+	return nil
+}

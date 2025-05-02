@@ -2,8 +2,8 @@ package dbmetricstorage
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
 )
@@ -12,11 +12,7 @@ type PostgresMetricsStorage struct {
 	pool *pgxpool.Pool
 }
 
-type Mock struct{}
-
-func (m Mock) Ping() error {
-	return errors.New("no ping for mock")
-}
+var _ domain.MetricStorage = (*PostgresMetricsStorage)(nil)
 
 func New(dsn string) (*PostgresMetricsStorage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -37,6 +33,24 @@ func New(dsn string) (*PostgresMetricsStorage, error) {
 	}
 
 	return &PostgresMetricsStorage{pool: pool}, nil
+}
+
+func (s PostgresMetricsStorage) GetAllMetrics() []domain.Metric {
+	//TODO implement me
+	//panic("implement me")
+	return []domain.Metric{}
+}
+
+func (s PostgresMetricsStorage) UpdateMetric(metric domain.Metric) error {
+	//TODO implement me
+	//panic("implement me")
+	return nil
+}
+
+func (s PostgresMetricsStorage) GetMetric(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
+	//TODO implement me
+	//panic("implement me")
+	return domain.Metric{}, false
 }
 
 func (s PostgresMetricsStorage) Ping() error {

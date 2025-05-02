@@ -9,17 +9,15 @@ import (
 )
 
 type MetricRouter struct {
-	router   *gin.Engine
-	storage  domain.MetricStorage
-	database interface{ Ping() error }
+	router  *gin.Engine
+	storage domain.MetricStorage
 }
 
-func NewMetricRouter(
+func New(
 	router *gin.Engine,
 	storage domain.MetricStorage,
-	database interface{ Ping() error },
 ) *MetricRouter {
-	mr := MetricRouter{router: router, storage: storage, database: database}
+	mr := MetricRouter{router: router, storage: storage}
 
 	mr.registerNoRoutes()
 	mr.registerPing()
@@ -57,7 +55,7 @@ func (mr *MetricRouter) registerNoRoutes() {
 
 func (mr *MetricRouter) registerPing() {
 	mr.router.GET("/ping", func(c *gin.Context) {
-		if err := mr.database.Ping(); err != nil {
+		if err := mr.storage.Ping(); err != nil {
 			c.Status(http.StatusInternalServerError)
 			return
 		}
