@@ -47,7 +47,14 @@ func main() {
 
 func storeSelector(config serverconfig.ServerConfig, logger *zerolog.Logger) (domain.MetricStorage, error) {
 	if config.DatabaseDSN != "" {
-		return dbmetricstorage.New(config.DatabaseDSN, logger)
+		retryIntervals := []time.Duration{time.Second, time.Second * 3, time.Second * 5}
+		var dbStore domain.MetricStorage
+		dbStore, err := dbmetricstorage.New(config.DatabaseDSN, logger)
+		if err != nil {
+			return nil, err
+		}
+		return dbmetricstorage.NewRetryableDBStorage(dbStore, retryIntervals, logger), nil
+
 	}
 
 	if config.FileStoragePath != "" {
