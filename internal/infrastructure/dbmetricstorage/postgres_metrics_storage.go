@@ -105,7 +105,28 @@ func (s PostgresMetricsStorage) UpdateMetrics(metrics []domain.Metric) error {
 		}
 	}
 
-	for _, metric := range metrics {
+	batch := make([]domain.Metric, 0)
+	counters := map[string]domain.Metric{}
+	for _, m := range metrics {
+		if m.MType == domain.MetricTypeGauge {
+			batch = append(batch, m)
+			continue
+		}
+		counter, ok := counters[m.ID]
+		if ok {
+			newValue := *counter.Delta + *m.Delta
+			counter.Delta = &newValue
+			counters[m.ID] = counter
+		} else {
+			counters[m.ID] = m
+		}
+	}
+
+	for _, metric := range counters {
+		batch = append(batch, metric)
+	}
+
+	for _, metric := range batch {
 		_, err = tx.Exec(ctx, `
         INSERT INTO metrics (id, type, value_delta, value_gauge)
         VALUES ($1, $2, $3, $4)
