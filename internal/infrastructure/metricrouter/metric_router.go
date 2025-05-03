@@ -138,18 +138,18 @@ func (mr *MetricRouter) registerUpdateMetricsJSON() {
 			return
 		}
 
-		var metrics domain.Metric
-		if err := c.ShouldBindJSON(&metrics); err != nil {
+		var metric domain.Metric
+		if err := c.ShouldBindJSON(&metric); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		metrics, err := mr.updateMetrics(metrics)
+		metric, err := mr.updateMetrics(metric)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
 
-		c.JSON(http.StatusOK, metrics)
+		c.JSON(http.StatusOK, metric)
 	})
 }
 
@@ -201,5 +201,6 @@ func (mr *MetricRouter) verifyContentTypeIsJSON(r *http.Request) error {
 	if r.Header.Get("Content-Type") != "application/json" {
 		return errors.New("Content-Type must be application/json")
 	}
+
 	return nil
 }

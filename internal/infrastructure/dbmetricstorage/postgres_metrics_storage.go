@@ -79,7 +79,11 @@ func (s PostgresMetricsStorage) UpdateMetric(metric domain.Metric) error {
         INSERT INTO metrics (id, type, value_delta, value_gauge)
         VALUES ($1, $2, $3, $4)
         ON CONFLICT (id, type) DO UPDATE SET
-            value_delta = EXCLUDED.value_delta,
+            value_delta = CASE 
+                WHEN metrics.type = 'counter' 
+                THEN metrics.value_delta + EXCLUDED.value_delta
+                ELSE EXCLUDED.value_delta
+            END,
             value_gauge = EXCLUDED.value_gauge
         `,
 		metric.ID, metric.MType, metric.Delta, metric.Value,
@@ -105,33 +109,16 @@ func (s PostgresMetricsStorage) UpdateMetrics(metrics []domain.Metric) error {
 		}
 	}
 
-	batch := make([]domain.Metric, 0)
-	counters := map[string]domain.Metric{}
-	for _, m := range metrics {
-		if m.MType == domain.MetricTypeGauge {
-			batch = append(batch, m)
-			continue
-		}
-		counter, ok := counters[m.ID]
-		if ok {
-			newValue := *counter.Delta + *m.Delta
-			counter.Delta = &newValue
-			counters[m.ID] = counter
-		} else {
-			counters[m.ID] = m
-		}
-	}
-
-	for _, metric := range counters {
-		batch = append(batch, metric)
-	}
-
-	for _, metric := range batch {
+	for _, metric := range metrics {
 		_, err = tx.Exec(ctx, `
         INSERT INTO metrics (id, type, value_delta, value_gauge)
         VALUES ($1, $2, $3, $4)
         ON CONFLICT (id, type) DO UPDATE SET
-            value_delta = EXCLUDED.value_delta,
+            value_delta = CASE 
+                WHEN metrics.type = 'counter' 
+                THEN metrics.value_delta + EXCLUDED.value_delta
+                ELSE EXCLUDED.value_delta
+            END,
             value_gauge = EXCLUDED.value_gauge
         `,
 			metric.ID, metric.MType, metric.Delta, metric.Value,
