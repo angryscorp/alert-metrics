@@ -63,3 +63,29 @@ func (mr *HTTPMetricReporter) ReportMetrics(metrics domain.Metric) {
 
 	mr.logger.Info("report metric response", "metrics", metrics)
 }
+
+func (mr *HTTPMetricReporter) ReportBatch(metrics []domain.Metric) {
+	mr.logger.Info("report metric request", "metrics", metrics)
+
+	bodyBytes, err := json.Marshal(metrics)
+	if err != nil {
+		mr.logger.Error("failed to convert metrics to json", "metrics", metrics)
+		return
+	}
+
+	req, err := http.NewRequest(http.MethodPost, mr.baseURL+"/updates/", bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		mr.logger.Error("failed to build post request", "json", bodyBytes, "error", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := mr.client.Do(req)
+	if err != nil {
+		mr.logger.Error("failed to report metrics", "metrics", metrics, "error", err)
+		return
+	}
+	_ = resp.Body.Close()
+
+	mr.logger.Info("report metric response", "metrics", metrics)
+}
