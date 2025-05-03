@@ -8,6 +8,8 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricmonitor"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricreporter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricworker"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/retrytransport"
+	"github.com/rs/zerolog"
 	"net/http"
 	"os"
 	"time"
@@ -27,7 +29,11 @@ func main() {
 	mr := metricreporter.NewHTTPMetricReporter(
 		"http://"+flags.Address,
 		&http.Client{
-			Transport: gzipper.NewGzipTransport(http.DefaultTransport),
+			Transport: retrytransport.New(
+				gzipper.NewGzipTransport(http.DefaultTransport),
+				[]time.Duration{time.Second, time.Second * 3, time.Second * 5},
+				zerolog.New(os.Stdout).With().Timestamp().Logger(),
+			),
 		},
 	)
 
