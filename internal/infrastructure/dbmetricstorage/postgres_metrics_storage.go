@@ -60,7 +60,7 @@ func (s PostgresMetricsStorage) GetAllMetrics() []domain.Metric {
 
 	for rows.Next() {
 		var metric domain.Metric
-		err := rows.Scan(&metric.ID, &metric.MType, &metric.Value, &metric.Delta)
+		err := rows.Scan(&metric.ID, &metric.MType, &metric.Delta, &metric.Value)
 		if err != nil {
 			panic(err)
 		}
@@ -82,7 +82,7 @@ func (s PostgresMetricsStorage) UpdateMetric(metric domain.Metric) error {
             value_delta = EXCLUDED.value_delta,
             value_gauge = EXCLUDED.value_gauge
         `,
-		metric.ID, metric.MType, metric.Value, metric.Delta,
+		metric.ID, metric.MType, metric.Delta, metric.Value,
 	)
 
 	if err != nil {
@@ -113,7 +113,7 @@ func (s PostgresMetricsStorage) UpdateMetrics(metrics []domain.Metric) error {
             value_delta = EXCLUDED.value_delta,
             value_gauge = EXCLUDED.value_gauge
         `,
-			metric.ID, metric.MType, metric.Value, metric.Delta,
+			metric.ID, metric.MType, metric.Delta, metric.Value,
 		)
 		if err != nil {
 			rollback()
@@ -143,7 +143,7 @@ func (s PostgresMetricsStorage) GetMetric(metricType domain.MetricType, metricNa
 	)
 
 	metric := domain.Metric{ID: metricName, MType: metricType}
-	err := row.Scan(&metric.Value, &metric.Delta)
+	err := row.Scan(&metric.Delta, &metric.Value)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.Metric{}, false

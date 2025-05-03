@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -87,5 +88,11 @@ func (mr *HTTPMetricReporter) ReportBatch(metrics []domain.Metric) {
 	}
 	_ = resp.Body.Close()
 
-	mr.logger.Info("report metric response", "metrics", metrics)
+	var responseBody []byte
+	responseBody, _ = io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		mr.logger.Error("received error", "status", resp.Status, "body", string(responseBody))
+		return
+	}
+	mr.logger.Info("received response", "status", resp.Status, "body", string(responseBody))
 }

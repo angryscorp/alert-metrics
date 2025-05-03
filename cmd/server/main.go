@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/dbmetricstorage"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/gzipper"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/httplogger"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
@@ -35,6 +36,7 @@ func main() {
 	router.
 		Use(httplogger.New(logger)).
 		Use(gin.Recovery()).
+		Use(gzipper.UnzipMiddleware()).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
 	mr := metricrouter.New(router, store)

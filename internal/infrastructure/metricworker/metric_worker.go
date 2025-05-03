@@ -93,6 +93,10 @@ func (mw *MetricWorker) sendBatch() {
 		}
 	}
 
+	if len(buf) > 0 {
+		mw.metricReporter.ReportBatch(buf)
+	}
+
 	// Report interval
 	if mw.isRunning {
 		time.Sleep(mw.reportInterval)
