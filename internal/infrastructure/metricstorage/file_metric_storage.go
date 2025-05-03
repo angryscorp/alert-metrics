@@ -76,11 +76,21 @@ func (s FileMetricStorage) UpdateMetric(metric domain.Metric) error {
 		return err
 	}
 
-	if s.writeInterval > 0 {
-		go func() {
-			time.Sleep(s.writeInterval)
-			go s.saveCurrentMetrics()
-		}()
+	if s.writeInterval == 0 {
+		s.saveCurrentMetrics()
+	}
+
+	return nil
+}
+
+func (s FileMetricStorage) UpdateMetrics(metrics []domain.Metric) error {
+	err := s.storage.UpdateMetrics(metrics)
+	if err != nil {
+		return err
+	}
+
+	if s.writeInterval == 0 {
+		s.saveCurrentMetrics()
 	}
 
 	return nil

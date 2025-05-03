@@ -26,6 +26,7 @@ func New(
 	mr.registerUpdateMetrics()
 	mr.registerFetchMetricsJSON()
 	mr.registerUpdateMetricsJSON()
+	mr.registerBatchUpdateFetchMetrics()
 
 	return &mr
 }
@@ -146,6 +147,28 @@ func (mr *MetricRouter) registerUpdateMetricsJSON() {
 		metrics, err := mr.updateMetrics(metrics)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+
+		c.JSON(http.StatusOK, metrics)
+	})
+}
+
+func (mr *MetricRouter) registerBatchUpdateFetchMetrics() {
+	mr.router.POST("/updates/", func(c *gin.Context) {
+		if err := mr.verifyContentTypeIsJSON(c.Request); err != nil {
+			c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": err.Error()})
+			return
+		}
+
+		var metrics []domain.Metric
+		if err := c.ShouldBindJSON(&metrics); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		err := mr.storage.UpdateMetrics(metrics)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 
 		c.JSON(http.StatusOK, metrics)

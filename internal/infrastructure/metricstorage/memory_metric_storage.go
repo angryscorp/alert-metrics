@@ -62,6 +62,16 @@ func (m *MemoryMetricStorage) UpdateMetric(metrics domain.Metric) error {
 	return nil
 }
 
+func (m *MemoryMetricStorage) UpdateMetrics(metrics []domain.Metric) error {
+	for _, v := range metrics {
+		if err := m.UpdateMetric(v); err != nil {
+			return err
+		}
+	}
+	
+	return nil
+}
+
 func (m *MemoryMetricStorage) GetMetric(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
