@@ -47,14 +47,18 @@ func main() {
 
 func storeSelector(config serverconfig.ServerConfig, logger *zerolog.Logger) (domain.MetricStorage, error) {
 	if config.DatabaseDSN != "" {
+		if err := dbmetricstorage.Migrate(config.DatabaseDSN); err != nil {
+			return nil, fmt.Errorf("failed to migrate database: %w", err)
+		}
+
 		retryIntervals := []time.Duration{time.Second, time.Second * 3, time.Second * 5}
 		var dbStore domain.MetricStorage
 		dbStore, err := dbmetricstorage.New(config.DatabaseDSN, logger)
 		if err != nil {
 			return nil, err
 		}
-		return dbmetricstorage.NewRetryableDBStorage(dbStore, retryIntervals, logger), nil
 
+		return dbmetricstorage.NewRetryableDBStorage(dbStore, retryIntervals, logger), nil
 	}
 
 	if config.FileStoragePath != "" {
