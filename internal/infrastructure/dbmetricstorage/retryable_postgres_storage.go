@@ -1,6 +1,7 @@
 package dbmetricstorage
 
 import (
+	"context"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/rs/zerolog"
 	"time"
@@ -26,29 +27,29 @@ func NewRetryableDBStorage(
 	}
 }
 
-func (s *RetryablePostgresStorage) UpdateMetric(metric domain.Metric) error {
+func (s *RetryablePostgresStorage) UpdateMetric(ctx context.Context, metric domain.Metric) error {
 	return s.withRetry(func() error {
-		return s.storage.UpdateMetric(metric)
+		return s.storage.UpdateMetric(ctx, metric)
 	})
 }
 
-func (s *RetryablePostgresStorage) GetAllMetrics() []domain.Metric {
-	return s.storage.GetAllMetrics()
+func (s *RetryablePostgresStorage) GetAllMetrics(ctx context.Context) []domain.Metric {
+	return s.storage.GetAllMetrics(ctx)
 }
 
-func (s *RetryablePostgresStorage) UpdateMetrics(metrics []domain.Metric) error {
+func (s *RetryablePostgresStorage) UpdateMetrics(ctx context.Context, metrics []domain.Metric) error {
 	return s.withRetry(func() error {
-		return s.storage.UpdateMetrics(metrics)
+		return s.storage.UpdateMetrics(ctx, metrics)
 	})
 }
 
-func (s *RetryablePostgresStorage) GetMetric(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
-	return s.storage.GetMetric(metricType, metricName)
+func (s *RetryablePostgresStorage) GetMetric(ctx context.Context, metricType domain.MetricType, metricName string) (domain.Metric, bool) {
+	return s.storage.GetMetric(ctx, metricType, metricName)
 }
 
-func (s *RetryablePostgresStorage) Ping() error {
+func (s *RetryablePostgresStorage) Ping(ctx context.Context) error {
 	return s.withRetry(func() error {
-		return s.storage.Ping()
+		return s.storage.Ping(ctx)
 	})
 }
 

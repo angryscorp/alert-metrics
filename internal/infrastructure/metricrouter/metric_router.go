@@ -1,6 +1,7 @@
 package metricrouter
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
@@ -56,7 +57,7 @@ func (mr *MetricRouter) registerNoRoutes() {
 
 func (mr *MetricRouter) registerPing() {
 	mr.router.GET("/ping", func(c *gin.Context) {
-		if err := mr.storage.Ping(); err != nil {
+		if err := mr.storage.Ping(c.Request.Context()); err != nil {
 			c.Status(http.StatusInternalServerError)
 			return
 		}
@@ -72,7 +73,7 @@ func (mr *MetricRouter) registerGetMetric() {
 			return
 		}
 
-		metrics, ok := mr.storage.GetMetric(metricType, c.Param("metricName"))
+		metrics, ok := mr.storage.GetMetric(c.Request.Context(), metricType, c.Param("metricName"))
 		if !ok {
 			c.Status(http.StatusNotFound)
 			return
@@ -84,7 +85,7 @@ func (mr *MetricRouter) registerGetMetric() {
 
 func (mr *MetricRouter) registerGetAllMetrics() {
 	mr.router.GET("/", func(c *gin.Context) {
-		allMetrics := mr.storage.GetAllMetrics()
+		allMetrics := mr.storage.GetAllMetrics(c.Request.Context())
 		if len(allMetrics) == 0 {
 			c.Data(http.StatusOK, "text/html", []byte("<h3>No data</h3>"))
 			return
@@ -101,7 +102,7 @@ func (mr *MetricRouter) registerGetAllMetrics() {
 
 func (mr *MetricRouter) registerUpdateMetrics() {
 	mr.router.POST("/update/:metricType/:metricName/:metricValue", func(c *gin.Context) {
-		if err := mr.update(c.Param("metricType"), c.Param("metricName"), c.Param("metricValue")); err != nil {
+		if err := mr.update(c.Request.Context(), c.Param("metricType"), c.Param("metricName"), c.Param("metricValue")); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
 		c.Status(http.StatusOK)
@@ -121,7 +122,7 @@ func (mr *MetricRouter) registerFetchMetricsJSON() {
 			return
 		}
 
-		res, ok := mr.storage.GetMetric(metrics.MType, metrics.ID)
+		res, ok := mr.storage.GetMetric(c.Request.Context(), metrics.MType, metrics.ID)
 		if ok {
 			c.JSON(http.StatusOK, res)
 			return
@@ -144,7 +145,7 @@ func (mr *MetricRouter) registerUpdateMetricsJSON() {
 			return
 		}
 
-		metric, err := mr.updateMetrics(metric)
+		metric, err := mr.updateMetrics(c.Request.Context(), metric)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
@@ -166,7 +167,7 @@ func (mr *MetricRouter) registerBatchUpdateFetchMetrics() {
 			return
 		}
 
-		err := mr.storage.UpdateMetrics(metrics)
+		err := mr.storage.UpdateMetrics(c.Request.Context(), metrics)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
@@ -175,22 +176,22 @@ func (mr *MetricRouter) registerBatchUpdateFetchMetrics() {
 	})
 }
 
-func (mr *MetricRouter) update(rawMetricType string, metricName string, metricValue string) error {
+func (mr *MetricRouter) update(ctx context.Context, rawMetricType string, metricName string, metricValue string) error {
 	metrics, err := domain.NewMetrics(rawMetricType, metricName, metricValue)
 	if err != nil {
 		return err
 	}
 
-	return mr.storage.UpdateMetric(*metrics)
+	return mr.storage.UpdateMetric(ctx, *metrics)
 }
 
-func (mr *MetricRouter) updateMetrics(metrics domain.Metric) (domain.Metric, error) {
-	err := mr.storage.UpdateMetric(metrics)
+func (mr *MetricRouter) updateMetrics(ctx context.Context, metrics domain.Metric) (domain.Metric, error) {
+	err := mr.storage.UpdateMetric(ctx, metrics)
 	if err != nil {
 		return domain.Metric{}, err
 	}
 
-	res, ok := mr.storage.GetMetric(metrics.MType, metrics.ID)
+	res, ok := mr.storage.GetMetric(ctx, metrics.MType, metrics.ID)
 	if !ok {
 		return domain.Metric{}, errors.New("failed to get updated metrics")
 	}

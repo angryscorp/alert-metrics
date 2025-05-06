@@ -44,10 +44,10 @@ func New(dsn string, logger *zerolog.Logger) (*PostgresMetricsStorage, error) {
 	return store, nil
 }
 
-func (s PostgresMetricsStorage) GetAllMetrics() []domain.Metric {
+func (s PostgresMetricsStorage) GetAllMetrics(ctx context.Context) []domain.Metric {
 	metrics := make([]domain.Metric, 0)
 
-	rows, err := s.pool.Query(context.TODO(), selectAllMetrics)
+	rows, err := s.pool.Query(ctx, selectAllMetrics)
 	if err != nil {
 		s.logger.Error().Err(err).Msg("failed to query metrics")
 		return metrics
@@ -71,11 +71,8 @@ func (s PostgresMetricsStorage) GetAllMetrics() []domain.Metric {
 	return metrics
 }
 
-func (s PostgresMetricsStorage) UpdateMetric(metric domain.Metric) error {
-	_, err := s.pool.Exec(context.TODO(), upsertMetric,
-		metric.ID, metric.MType, metric.Delta, metric.Value,
-	)
-
+func (s PostgresMetricsStorage) UpdateMetric(ctx context.Context, metric domain.Metric) error {
+	_, err := s.pool.Exec(ctx, upsertMetric, metric.ID, metric.MType, metric.Delta, metric.Value)
 	if err != nil {
 		return fmt.Errorf("failed to update metric: %w", err)
 	}
@@ -83,8 +80,7 @@ func (s PostgresMetricsStorage) UpdateMetric(metric domain.Metric) error {
 	return nil
 }
 
-func (s PostgresMetricsStorage) UpdateMetrics(metrics []domain.Metric) error {
-	ctx := context.TODO()
+func (s PostgresMetricsStorage) UpdateMetrics(ctx context.Context, metrics []domain.Metric) error {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -110,11 +106,8 @@ func (s PostgresMetricsStorage) UpdateMetrics(metrics []domain.Metric) error {
 	return nil
 }
 
-func (s PostgresMetricsStorage) GetMetric(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
-	row := s.pool.QueryRow(context.TODO(), selectMetric,
-		metricName, metricType,
-	)
-
+func (s PostgresMetricsStorage) GetMetric(ctx context.Context, metricType domain.MetricType, metricName string) (domain.Metric, bool) {
+	row := s.pool.QueryRow(ctx, selectMetric, metricName, metricType)
 	metric := domain.Metric{ID: metricName, MType: metricType}
 	err := row.Scan(&metric.Delta, &metric.Value)
 	if err != nil {
@@ -126,8 +119,8 @@ func (s PostgresMetricsStorage) GetMetric(metricType domain.MetricType, metricNa
 	return metric, true
 }
 
-func (s PostgresMetricsStorage) Ping() error {
-	return s.pool.Ping(context.TODO())
+func (s PostgresMetricsStorage) Ping(ctx context.Context) error {
+	return s.pool.Ping(ctx)
 }
 
 func (s PostgresMetricsStorage) prepareDataTable() error {

@@ -1,6 +1,7 @@
 package metricstorage
 
 import (
+	"context"
 	"errors"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"sync"
@@ -21,7 +22,7 @@ func NewMemoryMetricStorage() *MemoryMetricStorage {
 	}
 }
 
-func (m *MemoryMetricStorage) GetAllMetrics() []domain.Metric {
+func (m *MemoryMetricStorage) GetAllMetrics(ctx context.Context) []domain.Metric {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -44,7 +45,7 @@ func (m *MemoryMetricStorage) GetAllMetrics() []domain.Metric {
 	return res
 }
 
-func (m *MemoryMetricStorage) UpdateMetric(metrics domain.Metric) error {
+func (m *MemoryMetricStorage) UpdateMetric(ctx context.Context, metrics domain.Metric) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -62,17 +63,17 @@ func (m *MemoryMetricStorage) UpdateMetric(metrics domain.Metric) error {
 	return nil
 }
 
-func (m *MemoryMetricStorage) UpdateMetrics(metrics []domain.Metric) error {
+func (m *MemoryMetricStorage) UpdateMetrics(ctx context.Context, metrics []domain.Metric) error {
 	for _, v := range metrics {
-		if err := m.UpdateMetric(v); err != nil {
+		if err := m.UpdateMetric(ctx, v); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
-func (m *MemoryMetricStorage) GetMetric(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
+func (m *MemoryMetricStorage) GetMetric(ctx context.Context, metricType domain.MetricType, metricName string) (domain.Metric, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -101,6 +102,6 @@ func (m *MemoryMetricStorage) GetMetric(metricType domain.MetricType, metricName
 	return res, found
 }
 
-func (m *MemoryMetricStorage) Ping() error {
+func (m *MemoryMetricStorage) Ping(ctx context.Context) error {
 	return nil
 }
