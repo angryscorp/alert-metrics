@@ -47,10 +47,7 @@ func New(dsn string, logger *zerolog.Logger) (*PostgresMetricsStorage, error) {
 func (s PostgresMetricsStorage) GetAllMetrics() []domain.Metric {
 	metrics := make([]domain.Metric, 0)
 
-	rows, err := s.pool.Query(context.TODO(), `
-		SELECT * FROM metrics
-		`,
-	)
+	rows, err := s.pool.Query(context.TODO(), selectAllMetrics)
 	if err != nil {
 		s.logger.Error().Err(err).Msg("failed to query metrics")
 		return metrics
@@ -75,17 +72,7 @@ func (s PostgresMetricsStorage) GetAllMetrics() []domain.Metric {
 }
 
 func (s PostgresMetricsStorage) UpdateMetric(metric domain.Metric) error {
-	_, err := s.pool.Exec(context.TODO(), `
-        INSERT INTO metrics (id, type, value_delta, value_gauge)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (id, type) DO UPDATE SET
-            value_delta = CASE 
-                WHEN metrics.type = 'counter' 
-                THEN metrics.value_delta + EXCLUDED.value_delta
-                ELSE EXCLUDED.value_delta
-            END,
-            value_gauge = EXCLUDED.value_gauge
-        `,
+	_, err := s.pool.Exec(context.TODO(), upsertMetric,
 		metric.ID, metric.MType, metric.Delta, metric.Value,
 	)
 
@@ -103,50 +90,28 @@ func (s PostgresMetricsStorage) UpdateMetrics(metrics []domain.Metric) error {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	rollback := func() {
-		if err := tx.Rollback(ctx); err != nil {
-			s.logger.Error().Err(err).Msg("failed to rollback transaction")
-		}
-	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		_ = tx.Rollback(ctx)
+	}(tx, ctx)
 
 	for _, metric := range metrics {
-		_, err = tx.Exec(ctx, `
-        INSERT INTO metrics (id, type, value_delta, value_gauge)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (id, type) DO UPDATE SET
-            value_delta = CASE 
-                WHEN metrics.type = 'counter' 
-                THEN metrics.value_delta + EXCLUDED.value_delta
-                ELSE EXCLUDED.value_delta
-            END,
-            value_gauge = EXCLUDED.value_gauge
-        `,
+		_, err = tx.Exec(ctx, upsertMetric,
 			metric.ID, metric.MType, metric.Delta, metric.Value,
 		)
 		if err != nil {
-			rollback()
 			return fmt.Errorf("failed to update metric: %w", err)
 		}
 	}
 
 	if err = tx.Commit(ctx); err != nil {
-		rollback()
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil
-
 }
 
 func (s PostgresMetricsStorage) GetMetric(metricType domain.MetricType, metricName string) (domain.Metric, bool) {
-	row := s.pool.QueryRow(context.TODO(), `
-		SELECT value_delta, value_gauge 
-		FROM metrics 
-	    WHERE 
-	        id = $1 
-	      AND 
-	        type = $2
-		`,
+	row := s.pool.QueryRow(context.TODO(), selectMetric,
 		metricName, metricType,
 	)
 
@@ -166,16 +131,7 @@ func (s PostgresMetricsStorage) Ping() error {
 }
 
 func (s PostgresMetricsStorage) prepareDataTable() error {
-	_, err := s.pool.Exec(context.TODO(), `
-        CREATE TABLE IF NOT EXISTS metrics (
-		    id VARCHAR(255) NOT NULL,
-    		type VARCHAR(50) NOT NULL,
-    		value_delta BIGINT,
-    		value_gauge DOUBLE PRECISION,
-    		PRIMARY KEY (id, type)
-		);
-        `,
-	)
+	_, err := s.pool.Exec(context.TODO(), createTableMetrics)
 
 	return err
 }
