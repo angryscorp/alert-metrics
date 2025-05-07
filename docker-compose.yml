@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: metrics_user
+      POSTGRES_PASSWORD: metrics_password
+      POSTGRES_DB: metrics
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U metrics_user -d metrics"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: cmd/server/Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    environment:
+      - ADDRESS=:8080
+      - DATABASE_DSN=postgres://metrics_user:metrics_password@postgres:5432/metrics?sslmode=disable
+
+  agent:
+    build:
+      context: .
+      dockerfile: cmd/agent/Dockerfile
+    depends_on:
+      - server
+    networks:
+      - app-network
+    restart: unless-stopped
+    environment:
+      - ADDRESS=server:8080
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,6 +1,7 @@
 package metricrouter
 
 import (
+	"context"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 	"github.com/gin-gonic/gin"
@@ -14,12 +15,12 @@ func TestMetricRouter(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	store := metricstorage.NewMemoryMetricStorage()
 	val := 123.456
-	_ = store.UpdateMetric(domain.Metric{
+	_ = store.UpdateMetric(context.TODO(), domain.Metric{
 		ID:    "test123",
 		MType: domain.MetricTypeGauge,
 		Value: &val,
 	})
-	metricRouter := NewMetricRouter(gin.New(), store)
+	metricRouter := New(gin.New(), store)
 
 	tests := []struct {
 		name     string

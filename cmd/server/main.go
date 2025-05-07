@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/dbmetricstorage"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/gzipper"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/httplogger"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
@@ -25,32 +27,49 @@ func main() {
 
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
+	store, err := storeSelector(config, &logger)
+	if err != nil {
+		panic(err)
+	}
+
 	router := gin.New()
 	router.
 		Use(httplogger.New(logger)).
 		Use(gin.Recovery()).
+		Use(gzipper.UnzipMiddleware()).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
-	var store domain.MetricStorage
-	store = metricstorage.NewMemoryMetricStorage()
+	mr := metricrouter.New(router, store)
+	if err = mr.Run(config.Address); err != nil {
+		panic(err)
+	}
+}
+
+func storeSelector(config serverconfig.ServerConfig, logger *zerolog.Logger) (domain.MetricStorage, error) {
+	if config.DatabaseDSN != "" {
+		if err := dbmetricstorage.Migrate(config.DatabaseDSN); err != nil {
+			return nil, fmt.Errorf("failed to migrate database: %w", err)
+		}
+
+		retryIntervals := []time.Duration{time.Second, time.Second * 3, time.Second * 5}
+		var dbStore domain.MetricStorage
+		dbStore, err := dbmetricstorage.New(config.DatabaseDSN, logger)
+		if err != nil {
+			return nil, err
+		}
+
+		return dbmetricstorage.NewRetryableDBStorage(dbStore, retryIntervals, logger), nil
+	}
 
 	if config.FileStoragePath != "" {
-		store = metricstorage.NewFileMetricStorage(
-			store,
-			logger,
+		return metricstorage.NewFileMetricStorage(
+			metricstorage.NewMemoryMetricStorage(),
+			*logger,
 			time.Duration(config.StoreIntervalInSeconds)*time.Second,
 			config.FileStoragePath,
 			config.ShouldRestore,
-		)
+		), nil
 	}
 
-	var mr = metricrouter.NewMetricRouter(
-		router,
-		store,
-	)
-
-	err = mr.Run(config.Address)
-	if err != nil {
-		panic(err)
-	}
+	return metricstorage.NewMemoryMetricStorage(), nil
 }

@@ -11,6 +11,7 @@ type ServerConfig struct {
 	StoreIntervalInSeconds int    `env:"STORE_INTERVAL"`
 	FileStoragePath        string `env:"FILE_STORAGE_PATH"`
 	ShouldRestore          bool   `env:"RESTORE"`
+	DatabaseDSN            string `env:"DATABASE_DSN"`
 }
 
 func New() (ServerConfig, error) {
@@ -18,6 +19,7 @@ func New() (ServerConfig, error) {
 	storeIntervalInSeconds := flag.Int("i", 300, "Store interval in seconds (default: 300)")
 	fileStoragePath := flag.String("f", "alert_monitoring_metrics.dump", "File storage path (default: alert_monitoring_metrics.dump)")
 	shouldRestore := flag.Bool("r", false, "Restore from file (default: false)")
+	databaseDSN := flag.String("d", "", "Database DSN (default: empty, file storage will be used)")
 
 	flag.Parse()
 
@@ -31,6 +33,7 @@ func New() (ServerConfig, error) {
 		StoreIntervalInSeconds: *storeIntervalInSeconds,
 		FileStoragePath:        *fileStoragePath,
 		ShouldRestore:          *shouldRestore,
+		DatabaseDSN:            *databaseDSN,
 	}
 
 	// ENV vars
