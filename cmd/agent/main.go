@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/agentconfig"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/gzipper"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/hash"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricmonitor"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricreporter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricworker"
@@ -30,7 +31,10 @@ func main() {
 		"http://"+flags.Address,
 		&http.Client{
 			Transport: retrytransport.New(
-				gzipper.NewGzipTransport(http.DefaultTransport),
+				hash.NewHashTransport(
+					gzipper.NewGzipTransport(http.DefaultTransport),
+					flags.HashKey,
+				),
 				[]time.Duration{time.Second, time.Second * 3, time.Second * 5},
 				zerolog.New(os.Stdout).With().Timestamp().Logger(),
 			),
