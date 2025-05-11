@@ -1,4 +1,4 @@
-package httplogger
+package logger
 
 import (
 	"github.com/gin-gonic/gin"

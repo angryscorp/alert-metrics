@@ -4,13 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	"github.com/angryscorp/alert-metrics/internal/http/gzipper"
+	"github.com/angryscorp/alert-metrics/internal/http/hash"
+	"github.com/angryscorp/alert-metrics/internal/http/logger"
+	"github.com/angryscorp/alert-metrics/internal/http/router"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/dbmetricstorage"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/gzipper"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/hash"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/httplogger"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricrouter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/serverconfig"
+	"github.com/angryscorp/alert-metrics/internal/serverconfig"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -26,22 +26,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+	zeroLogger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
-	store, err := storeSelector(config, &logger)
+	store, err := storeSelector(config, &zeroLogger)
 	if err != nil {
 		panic(err)
 	}
 
-	router := gin.New()
-	router.
-		Use(httplogger.New(logger)).
+	engine := gin.New()
+	engine.
+		Use(logger.New(zeroLogger)).
 		Use(gin.Recovery()).
 		Use(gzipper.UnzipMiddleware()).
 		Use(hash.NewHashValidator(config.HashKey)).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
-	mr := metricrouter.New(router, store)
+	mr := router.New(engine, store)
 	if err = mr.Run(config.Address); err != nil {
 		panic(err)
 	}
