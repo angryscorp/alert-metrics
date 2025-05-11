@@ -12,6 +12,7 @@ type ServerConfig struct {
 	FileStoragePath        string `env:"FILE_STORAGE_PATH"`
 	ShouldRestore          bool   `env:"RESTORE"`
 	DatabaseDSN            string `env:"DATABASE_DSN"`
+	HashKey                string `env:"KEY"`
 }
 
 func New() (ServerConfig, error) {
@@ -20,6 +21,7 @@ func New() (ServerConfig, error) {
 	fileStoragePath := flag.String("f", "alert_monitoring_metrics.dump", "File storage path (default: alert_monitoring_metrics.dump)")
 	shouldRestore := flag.Bool("r", false, "Restore from file (default: false)")
 	databaseDSN := flag.String("d", "", "Database DSN (default: empty, file storage will be used)")
+	hashKey := flag.String("k", "", "Key for calculating hash (default: none)")
 
 	flag.Parse()
 
@@ -34,6 +36,7 @@ func New() (ServerConfig, error) {
 		FileStoragePath:        *fileStoragePath,
 		ShouldRestore:          *shouldRestore,
 		DatabaseDSN:            *databaseDSN,
+		HashKey:                *hashKey,
 	}
 
 	// ENV vars

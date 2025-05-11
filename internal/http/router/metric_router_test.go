@@ -1,4 +1,4 @@
-package metricrouter
+package router
 
 import (
 	"context"

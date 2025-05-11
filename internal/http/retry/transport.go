@@ -1,4 +1,4 @@
-package retrytransport
+package retry
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type RetryTransport struct {
+type Transport struct {
 	transport      http.RoundTripper
 	retryIntervals []time.Duration
 	logger         zerolog.Logger
@@ -18,19 +18,19 @@ func New(
 	transport http.RoundTripper,
 	retryIntervals []time.Duration,
 	logger zerolog.Logger,
-) *RetryTransport {
+) *Transport {
 	if transport == nil {
 		transport = http.DefaultTransport
 	}
 
-	return &RetryTransport{
+	return &Transport{
 		transport:      transport,
 		retryIntervals: append([]time.Duration{0}, retryIntervals...),
 		logger:         logger,
 	}
 }
 
-func (rt *RetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+func (rt *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
 	var err error
 
