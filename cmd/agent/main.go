@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/angryscorp/alert-metrics/internal/agentconfig"
+	"github.com/angryscorp/alert-metrics/internal/config/agent"
 	"github.com/angryscorp/alert-metrics/internal/http/gzipper"
 	"github.com/angryscorp/alert-metrics/internal/http/hash"
 	"github.com/angryscorp/alert-metrics/internal/http/retry"
@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	flags, err := agentconfig.New()
+	flags, err := agent.NewConfig()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()

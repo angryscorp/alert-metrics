@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/angryscorp/alert-metrics/internal/config/server"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/angryscorp/alert-metrics/internal/http/gzipper"
 	"github.com/angryscorp/alert-metrics/internal/http/hash"
@@ -10,7 +11,6 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/http/router"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/dbmetricstorage"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
-	"github.com/angryscorp/alert-metrics/internal/serverconfig"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	config, err := serverconfig.New()
+	config, err := server.NewConfig()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()
@@ -47,7 +47,7 @@ func main() {
 	}
 }
 
-func storeSelector(config serverconfig.ServerConfig, logger *zerolog.Logger) (domain.MetricStorage, error) {
+func storeSelector(config server.Config, logger *zerolog.Logger) (domain.MetricStorage, error) {
 	if config.DatabaseDSN != "" {
 		if err := dbmetricstorage.Migrate(config.DatabaseDSN); err != nil {
 			return nil, fmt.Errorf("failed to migrate database: %w", err)
