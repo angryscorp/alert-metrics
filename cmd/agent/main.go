@@ -24,10 +24,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	rm := metricmonitor.NewRuntimeMonitor(time.Duration(flags.PollIntervalInSeconds) * time.Second)
-	rm.Start()
+	runtimeMonitor := metricmonitor.NewRuntimeMonitor(time.Duration(flags.PollIntervalInSeconds) * time.Second)
+	runtimeMonitor.Start()
 
-	mr := metricreporter.NewHTTPMetricReporter(
+	metricReporter := metricreporter.NewHTTPMetricReporter(
 		"http://"+flags.Address,
 		&http.Client{
 			Transport: retry.New(
@@ -41,7 +41,12 @@ func main() {
 		},
 	)
 
-	worker := metricworker.NewMetricWorker(rm, mr, time.Duration(flags.ReportIntervalInSeconds)*time.Second)
+	worker := metricworker.NewMetricWorker(
+		runtimeMonitor,
+		metricReporter,
+		time.Duration(flags.ReportIntervalInSeconds)*time.Second,
+		flags.RateLimit,
+	)
 	worker.Start()
 
 	select {}
