@@ -37,7 +37,7 @@ func (mw *MetricWorker) sendCurrentMetrics() {
 			MType: domain.MetricTypeGauge,
 			Value: &value,
 		}
-		mw.metricReporter.ReportMetrics(m)
+		mw.metricReporter.ReportMetric(m)
 	}
 
 	// Send Counter metrics
@@ -47,7 +47,7 @@ func (mw *MetricWorker) sendCurrentMetrics() {
 			MType: domain.MetricTypeCounter,
 			Delta: &value,
 		}
-		mw.metricReporter.ReportMetrics(m)
+		mw.metricReporter.ReportMetric(m)
 	}
 
 	// Report interval
