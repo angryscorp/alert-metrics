@@ -23,7 +23,7 @@ func Test_HTTPMetricReporter_Report(t *testing.T) {
 	reporter := NewHTTPMetricReporter("http://example.com", mockClient)
 
 	// Act
-	reporter.Report(domain.MetricTypeGauge, "key", "value")
+	reporter.ReportRawMetric(domain.MetricTypeGauge, "key", "value")
 
 	// Assert
 	assert.Equal(t, transport.lastRequest.URL.String(), "http://example.com/update/gauge/key/value")

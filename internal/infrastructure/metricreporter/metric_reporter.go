@@ -26,7 +26,7 @@ func NewHTTPMetricReporter(baseURL string, client *http.Client) *HTTPMetricRepor
 	}
 }
 
-func (mr *HTTPMetricReporter) Report(metricType domain.MetricType, key string, value string) {
+func (mr *HTTPMetricReporter) ReportRawMetric(metricType domain.MetricType, key string, value string) {
 	mr.logger.Info("report metric request", "metric type", metricType, "metric name", key, "metric value", value)
 
 	resp, err := mr.client.Post(mr.baseURL+"/update/"+string(metricType)+"/"+key+"/"+value, "text/plain", nil)
@@ -39,7 +39,7 @@ func (mr *HTTPMetricReporter) Report(metricType domain.MetricType, key string, v
 	mr.logger.Info("report metric response", "metric type", metricType, "metric name", key, "metric value", value, "status", resp.Status, "status code", resp.StatusCode)
 }
 
-func (mr *HTTPMetricReporter) ReportMetrics(metrics domain.Metric) {
+func (mr *HTTPMetricReporter) ReportMetric(metrics domain.Metric) {
 	mr.logger.Info("report metric request", "metrics", metrics)
 
 	bodyBytes, err := json.Marshal(metrics)

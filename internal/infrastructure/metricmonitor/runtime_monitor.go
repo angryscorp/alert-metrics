@@ -1,7 +1,10 @@
 package metricmonitor
 
 import (
+	"fmt"
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	"github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/mem"
 	"math/rand/v2"
 	"runtime"
 	"sync"
@@ -27,7 +30,32 @@ func NewRuntimeMonitor(pollInterval time.Duration) *RuntimeMonitor {
 
 var _ domain.MetricMonitor = (*RuntimeMonitor)(nil)
 
-func (m *RuntimeMonitor) update() {
+func (m *RuntimeMonitor) updateExtraMetrics() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Memory metrics
+	v, err := mem.VirtualMemory()
+	if err == nil {
+		m.gauges["TotalMemory"] = float64(v.Total)
+		m.gauges["FreeMemory"] = float64(v.Free)
+	}
+
+	// CPU metrics
+	cpuPercent, err := cpu.Percent(0, true)
+	if err == nil {
+		for i, percent := range cpuPercent {
+			m.gauges[fmt.Sprintf("CPUutilization%d", i+1)] = percent
+		}
+	}
+
+	if m.isStarted {
+		time.Sleep(m.pollInterval)
+		go m.updateExtraMetrics()
+	}
+}
+
+func (m *RuntimeMonitor) updateMainMetrics() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -70,13 +98,14 @@ func (m *RuntimeMonitor) update() {
 	// Polling
 	if m.isStarted {
 		time.Sleep(m.pollInterval)
-		go m.update()
+		go m.updateMainMetrics()
 	}
 }
 
 func (m *RuntimeMonitor) Start() {
 	m.isStarted = true
-	go m.update()
+	go m.updateMainMetrics()
+	go m.updateExtraMetrics()
 }
 func (m *RuntimeMonitor) Stop() {
 	m.isStarted = false
