@@ -3,6 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"time"
+
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+
 	"github.com/angryscorp/alert-metrics/internal/config/server"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/angryscorp/alert-metrics/internal/http/gzipper"
@@ -11,11 +18,6 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/http/router"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/dbmetricstorage"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
-	"github.com/gin-contrib/gzip"
-	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
-	"os"
-	"time"
 )
 
 func main() {

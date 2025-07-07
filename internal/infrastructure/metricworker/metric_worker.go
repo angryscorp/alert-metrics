@@ -1,8 +1,9 @@
 package metricworker
 
 import (
-	"github.com/angryscorp/alert-metrics/internal/domain"
 	"time"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 const batchSize = 10

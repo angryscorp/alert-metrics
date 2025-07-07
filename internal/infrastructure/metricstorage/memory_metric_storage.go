@@ -3,8 +3,9 @@ package metricstorage
 import (
 	"context"
 	"errors"
-	"github.com/angryscorp/alert-metrics/internal/domain"
 	"sync"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 var _ domain.MetricStorage = (*MemoryMetricStorage)(nil)

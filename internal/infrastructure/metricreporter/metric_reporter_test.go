@@ -1,10 +1,12 @@
 package metricreporter
 
 import (
-	"github.com/angryscorp/alert-metrics/internal/domain"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 type MockRoundTripper struct {

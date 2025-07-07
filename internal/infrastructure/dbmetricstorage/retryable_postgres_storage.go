@@ -2,9 +2,11 @@ package dbmetricstorage
 
 import (
 	"context"
-	"github.com/angryscorp/alert-metrics/internal/domain"
-	"github.com/rs/zerolog"
 	"time"
+
+	"github.com/rs/zerolog"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 type RetryablePostgresStorage struct {

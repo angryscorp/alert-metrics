@@ -3,11 +3,12 @@ package metricreporter
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/angryscorp/alert-metrics/internal/domain"
 	"io"
 	"log/slog"
 	"net/http"
 	"os"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 type HTTPMetricReporter struct {

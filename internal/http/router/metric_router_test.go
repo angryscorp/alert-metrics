@@ -2,13 +2,15 @@ package router
 
 import (
 	"context"
-	"github.com/angryscorp/alert-metrics/internal/domain"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/require"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 )
 
 func TestMetricRouter(t *testing.T) {

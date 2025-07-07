@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/angryscorp/alert-metrics/internal/domain"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 type MetricRouter struct {

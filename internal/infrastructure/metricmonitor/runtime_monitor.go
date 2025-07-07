@@ -2,13 +2,15 @@ package metricmonitor
 
 import (
 	"fmt"
-	"github.com/angryscorp/alert-metrics/internal/domain"
-	"github.com/shirou/gopsutil/v4/cpu"
-	"github.com/shirou/gopsutil/v4/mem"
 	"math/rand/v2"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/mem"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 type RuntimeMonitor struct {

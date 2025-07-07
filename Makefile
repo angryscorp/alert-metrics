@@ -67,3 +67,8 @@ restart: stop start
 clean:
 	rm -f $(OUTPUT_PATH_AGENT) $(PID_FILE_AGENT) $(LOG_PATH_AGENT)
 	rm -f $(OUTPUT_PATH_SERVER) $(PID_FILE_SERVER) $(LOG_PATH_SERVER)
+
+.PHONY: format
+format:
+	@gofmt -w .
+	@goimports -w -local github.com/angryscorp/alert-metrics .

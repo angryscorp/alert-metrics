@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/angryscorp/alert-metrics/internal/domain"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
-	"time"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 type PostgresMetricsStorage struct {

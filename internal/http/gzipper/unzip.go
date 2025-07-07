@@ -2,9 +2,10 @@ package gzipper
 
 import (
 	"compress/gzip"
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func UnzipMiddleware() gin.HandlerFunc {
