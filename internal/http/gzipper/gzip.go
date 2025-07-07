@@ -5,9 +5,17 @@ import (
 	"compress/gzip"
 	"io"
 	"net/http"
+	"sync"
 )
 
 const minSize = 128
+
+var gzipWriterPool = &sync.Pool{
+	New: func() interface{} {
+		w, _ := gzip.NewWriterLevel(nil, gzip.BestSpeed)
+		return w
+	},
+}
 
 type GzipTransport struct {
 	Transport http.RoundTripper
@@ -57,7 +65,10 @@ func (gt *GzipTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func (gt *GzipTransport) zip(body []byte) ([]byte, error) {
 	var compressed bytes.Buffer
-	gzipWriter := gzip.NewWriter(&compressed)
+
+	gzipWriter := gzipWriterPool.Get().(*gzip.Writer)
+	gzipWriter.Reset(&compressed)
+	defer gzipWriterPool.Put(gzipWriter)
 
 	_, err := gzipWriter.Write(body)
 	if err != nil {
