@@ -45,11 +45,10 @@ func main() {
 		Use(hash.NewHashValidator(config.HashKey)).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
-	metricsHandler := handler.New(store)
-
 	mr := router.New(engine)
-	mr.RegisterPingHandler(metricsHandler)
-	mr.RegisterMetricsHandler(metricsHandler)
+	mr.RegisterPingHandler(handler.NewPingHandler(store))
+	mr.RegisterMetricsHandler(handler.NewMetricsHandler(store))
+	mr.RegisterMetricsJSONHandler(handler.NewMetricsJSONHandler(store))
 
 	if err = mr.Run(config.Address); err != nil {
 		panic(err)

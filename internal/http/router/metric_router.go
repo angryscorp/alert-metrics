@@ -30,6 +30,9 @@ func (mr *MetricRouter) RegisterMetricsHandler(handler MetricsHandler) {
 	mr.engine.GET("/value/:metricType/:metricName", handler.GetMetric)
 	mr.engine.GET("/", handler.GetAllMetrics)
 	mr.engine.POST("/update/:metricType/:metricName/:metricValue", handler.UpdateMetrics)
+}
+
+func (mr *MetricRouter) RegisterMetricsJSONHandler(handler MetricsJSONHandler) {
 	mr.engine.POST("/value/", handler.FetchMetricsJSON)
 	mr.engine.POST("/update/", handler.UpdateMetricsJSON)
 	mr.engine.POST("/updates/", handler.BatchUpdateFetchMetrics)
