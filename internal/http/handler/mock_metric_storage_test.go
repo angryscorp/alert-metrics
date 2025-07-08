@@ -2,8 +2,10 @@ package handler
 
 import (
 	"context"
-	"github.com/angryscorp/alert-metrics/internal/domain"
+
 	"github.com/stretchr/testify/mock"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 // MockMetricStorage is a mock implementation of domain.MetricStorage for testing

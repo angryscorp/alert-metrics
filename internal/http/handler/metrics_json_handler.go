@@ -23,6 +23,7 @@ func NewMetricsJSONHandler(storage domain.MetricStorage) MetricsJSONHandler {
 
 var _ router.MetricsJSONHandler = (*MetricsJSONHandler)(nil)
 
+// FetchMetricsJSON handles a JSON POST request to fetch a specific metric by its type and ID from the storage.
 func (handler MetricsJSONHandler) FetchMetricsJSON(c *gin.Context) {
 	if err := handler.verifyContentTypeIsJSON(c.Request); err != nil {
 		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": err.Error()})
@@ -44,6 +45,7 @@ func (handler MetricsJSONHandler) FetchMetricsJSON(c *gin.Context) {
 	c.Status(http.StatusNotFound)
 }
 
+// UpdateMetricsJSON handles an HTTP POST request to update a metric in the storage using the provided JSON payload.
 func (handler MetricsJSONHandler) UpdateMetricsJSON(c *gin.Context) {
 	if err := handler.verifyContentTypeIsJSON(c.Request); err != nil {
 		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": err.Error()})
@@ -64,6 +66,7 @@ func (handler MetricsJSONHandler) UpdateMetricsJSON(c *gin.Context) {
 	c.JSON(http.StatusOK, metric)
 }
 
+// BatchUpdateFetchMetrics handles a JSON request to batch update and fetch multiple metrics from storage.
 func (handler MetricsJSONHandler) BatchUpdateFetchMetrics(c *gin.Context) {
 	if err := handler.verifyContentTypeIsJSON(c.Request); err != nil {
 		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": err.Error()})

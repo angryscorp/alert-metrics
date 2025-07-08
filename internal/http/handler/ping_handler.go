@@ -21,6 +21,7 @@ func NewPingHandler(storage domain.MetricStorage) PingHandler {
 
 var _ router.PingHandler = (*PingHandler)(nil)
 
+// Ping handles a liveness check by verifying the storage connection and returns appropriate HTTP status codes.
 func (handler PingHandler) Ping(c *gin.Context) {
 	if err := handler.storage.Ping(c.Request.Context()); err != nil {
 		c.Status(http.StatusInternalServerError)

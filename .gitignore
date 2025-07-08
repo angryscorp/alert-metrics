@@ -10,9 +10,6 @@ cmd/server/server.pid
 # Test binary, built with `go test -c`
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
 # Dependency directories (remove the comment below to include it)
 vendor/
 
@@ -20,8 +17,13 @@ vendor/
 .idea
 .vscode
 
-# Dumps
+#Logs & Dumps
+godoc.log
+coverage.html
 *.dump
+
+#Temporary files
+*.pid
 
 # Local test
 metricstest-darwin-arm64

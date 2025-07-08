@@ -23,6 +23,7 @@ func NewMetricsHandler(storage domain.MetricStorage) MetricsHandler {
 
 var _ router.MetricsHandler = (*MetricsHandler)(nil)
 
+// GetMetric retrieves the specified metric from storage and returns its value in the response. Responds with appropriate status codes.
 func (handler MetricsHandler) GetMetric(c *gin.Context) {
 	metricType, err := domain.NewMetricType(c.Param("metricType"))
 	if err != nil {
@@ -39,6 +40,7 @@ func (handler MetricsHandler) GetMetric(c *gin.Context) {
 	c.String(http.StatusOK, metrics.StringValue())
 }
 
+// GetAllMetrics retrieves all stored metrics and returns them as an HTML response. Shows a "No data" message if no metrics exist.
 func (handler MetricsHandler) GetAllMetrics(c *gin.Context) {
 	allMetrics := handler.storage.GetAllMetrics(c.Request.Context())
 	if len(allMetrics) == 0 {
@@ -54,6 +56,7 @@ func (handler MetricsHandler) GetAllMetrics(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html", []byte(htmlContent))
 }
 
+// UpdateMetrics processes an update request for a specific metric and responds with an appropriate HTTP status code.
 func (handler MetricsHandler) UpdateMetrics(c *gin.Context) {
 	if err := handler.update(c.Request.Context(), c.Param("metricType"), c.Param("metricName"), c.Param("metricValue")); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
