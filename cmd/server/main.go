@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/angryscorp/alert-metrics/internal/http/handler"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -43,7 +45,12 @@ func main() {
 		Use(hash.NewHashValidator(config.HashKey)).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
-	mr := router.New(engine, store)
+	metricsHandler := handler.New(store)
+
+	mr := router.New(engine)
+	mr.RegisterPingHandler(metricsHandler)
+	mr.RegisterMetricsHandler(metricsHandler)
+
 	if err = mr.Run(config.Address); err != nil {
 		panic(err)
 	}

@@ -99,7 +99,7 @@ func TestMetricRouter(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			// Act
-			metricRouter.router.ServeHTTP(w, request)
+			metricRouter.engine.ServeHTTP(w, request)
 			res := w.Result()
 			_ = res.Body.Close()
 
