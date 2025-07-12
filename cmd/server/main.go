@@ -3,6 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"time"
+
+	"github.com/angryscorp/alert-metrics/internal/http/handler"
+
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+
 	"github.com/angryscorp/alert-metrics/internal/config/server"
 	"github.com/angryscorp/alert-metrics/internal/domain"
 	"github.com/angryscorp/alert-metrics/internal/http/gzipper"
@@ -11,11 +20,6 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/http/router"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/dbmetricstorage"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
-	"github.com/gin-contrib/gzip"
-	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
-	"os"
-	"time"
 )
 
 func main() {
@@ -41,7 +45,11 @@ func main() {
 		Use(hash.NewHashValidator(config.HashKey)).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
-	mr := router.New(engine, store)
+	mr := router.New(engine)
+	mr.RegisterPingHandler(handler.NewPingHandler(store))
+	mr.RegisterMetricsHandler(handler.NewMetricsHandler(store))
+	mr.RegisterMetricsJSONHandler(handler.NewMetricsJSONHandler(store))
+
 	if err = mr.Run(config.Address); err != nil {
 		panic(err)
 	}

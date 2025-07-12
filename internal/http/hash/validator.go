@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func NewHashValidator(hashKey string) gin.HandlerFunc {

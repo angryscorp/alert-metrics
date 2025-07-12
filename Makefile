@@ -14,6 +14,10 @@ LOG_PATH_SERVER=$(BASE_PATH_SERVER)$(BINARY_NAME_SERVER).log
 START_CMD_SERVER=$(BASE_PATH_SERVER)$(BINARY_NAME_SERVER)
 PID_FILE_SERVER=$(BASE_PATH_SERVER)$(BINARY_NAME_SERVER).pid
 
+# GODOC
+GODOC_PID_FILE=./godoc.pid
+GODOC_LOG_FILE=./godoc.log
+
 .PHONY: build-agent
 build-agent:
 	go build -o $(OUTPUT_PATH_AGENT) $(BASE_PATH_AGENT)
@@ -67,3 +71,49 @@ restart: stop start
 clean:
 	rm -f $(OUTPUT_PATH_AGENT) $(PID_FILE_AGENT) $(LOG_PATH_AGENT)
 	rm -f $(OUTPUT_PATH_SERVER) $(PID_FILE_SERVER) $(LOG_PATH_SERVER)
+
+.PHONY: format
+format:
+	@gofmt -w .
+	@goimports -w -local github.com/angryscorp/alert-metrics .
+
+.PHONY: test-coverage
+test-coverage:
+	@go test -coverprofile=coverage.out ./...
+	@go tool cover -func=coverage.out | grep total | awk '{print "Total coverage: " $$3}'
+	@rm -f coverage.out
+
+.PHONY: test
+test:
+	go test ./...
+
+.PHONY: test-coverage-html
+test-coverage-html:
+	@go test -coverprofile=coverage.out ./... > /dev/null 2>&1
+	@go tool cover -html=coverage.out -o coverage.html
+	@rm -f coverage.out
+	@echo "Coverage report generated: coverage.html"
+	@open coverage.html
+	@go tool cover -func=coverage.out | grep total | awk '{print "Total coverage: " $$3}'
+
+.PHONY: doc-start
+doc-start:
+	@echo "Starting pkgsite server..."
+	@if ! command -v pkgsite > /dev/null 2>&1; then \
+		echo "Installing pkgsite..."; \
+		go install golang.org/x/pkgsite/cmd/pkgsite@latest; \
+	fi
+	@nohup pkgsite -http=:8080 > $(GODOC_LOG_FILE) 2>&1 & echo $$! > $(GODOC_PID_FILE)
+	@echo "Pkgsite server started with PID `cat $(GODOC_PID_FILE)`"
+	@sleep 1
+	@open http://localhost:8080/github.com/angryscorp/alert-metrics
+
+.PHONY: doc-stop
+doc-stop:
+	@if [ -f $(GODOC_PID_FILE) ]; then \
+		echo "Stopping godoc server..."; \
+		kill -9 `cat $(GODOC_PID_FILE)` && rm -f $(GODOC_PID_FILE); \
+		echo "Godoc server stopped."; \
+	else \
+		echo "No PID file found. Is godoc running?"; \
+	fi

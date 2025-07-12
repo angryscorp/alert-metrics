@@ -5,6 +5,11 @@ import (
 	"strconv"
 )
 
+// Metric represents a specific metric with its type, identifier, and optional value fields.
+// ID is the unique identifier for the metric.
+// MType indicates the type of the metric (e.g., counter, gauge).
+// Delta holds the value for counter-type metrics when defined.
+// Value holds the value for gauge-type metrics when defined.
 type Metric struct {
 	ID    string     `json:"id"`
 	MType MetricType `json:"type"`
@@ -12,6 +17,8 @@ type Metric struct {
 	Value *float64   `json:"value,omitempty"`
 }
 
+// NewMetrics creates a new Metric instance using the provided type, name, and value, and validates the inputs.
+// Returns the constructed Metric or an error if the inputs are invalid.
 func NewMetrics(metricType string, metricName string, value string) (*Metric, error) {
 	mType, err := NewMetricType(metricType)
 	if err != nil {

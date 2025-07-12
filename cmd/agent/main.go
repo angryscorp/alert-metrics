@@ -3,6 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/rs/zerolog"
+
 	"github.com/angryscorp/alert-metrics/internal/config/agent"
 	"github.com/angryscorp/alert-metrics/internal/http/gzipper"
 	"github.com/angryscorp/alert-metrics/internal/http/hash"
@@ -10,10 +16,6 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricmonitor"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricreporter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricworker"
-	"github.com/rs/zerolog"
-	"net/http"
-	"os"
-	"time"
 )
 
 func main() {

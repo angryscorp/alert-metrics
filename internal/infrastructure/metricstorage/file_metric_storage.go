@@ -3,10 +3,12 @@ package metricstorage
 import (
 	"context"
 	"encoding/json"
-	"github.com/angryscorp/alert-metrics/internal/domain"
-	"github.com/rs/zerolog"
 	"os"
 	"time"
+
+	"github.com/rs/zerolog"
+
+	"github.com/angryscorp/alert-metrics/internal/domain"
 )
 
 type FileMetricStorage struct {

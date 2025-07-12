@@ -2,10 +2,11 @@ package retry
 
 import (
 	"bytes"
-	"github.com/rs/zerolog"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/rs/zerolog"
 )
 
 type Transport struct {
