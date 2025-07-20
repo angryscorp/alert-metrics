@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"net/http"
 	"time"
 )
@@ -19,9 +18,7 @@ func Example_updateGaugeMetric() {
 		return
 	}
 
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_updateCounterMetric() {
@@ -35,9 +32,7 @@ func Example_updateCounterMetric() {
 		return
 	}
 
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_updateMetricJSON() {
@@ -58,9 +53,7 @@ func Example_updateMetricJSON() {
 		return
 	}
 
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_batchUpdateMetrics() {
@@ -81,9 +74,7 @@ func Example_batchUpdateMetrics() {
 		return
 	}
 
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_getMetric() {
@@ -97,9 +88,7 @@ func Example_getMetric() {
 		return
 	}
 
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_getMetricJSON() {
@@ -119,9 +108,7 @@ func Example_getMetricJSON() {
 		return
 	}
 
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_pingServer() {
@@ -134,9 +121,7 @@ func Example_pingServer() {
 		return
 	}
 
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_getAllMetrics() {
@@ -149,7 +134,5 @@ func Example_getAllMetrics() {
 		return
 	}
 
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
 }

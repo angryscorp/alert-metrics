@@ -94,9 +94,7 @@ func TestSigner_RoundTrip(t *testing.T) {
 			require.NoError(t, err)
 			assert.NotNil(t, resp)
 
-			defer func(Body io.ReadCloser) {
-				_ = Body.Close()
-			}(resp.Body)
+			defer func() { _ = resp.Body.Close() }()
 
 			hashHeader := req.Header.Get("HashSHA256")
 			if tt.expectedHeader {
