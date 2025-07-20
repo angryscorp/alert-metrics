@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -27,7 +28,7 @@ func main() {
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()
-		os.Exit(1)
+		log.Fatal(err.Error())
 	}
 
 	zeroLogger := zerolog.New(os.Stdout).With().Timestamp().Logger()
