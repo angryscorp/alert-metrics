@@ -7,6 +7,8 @@ cmd/server/server
 cmd/server/server.log
 cmd/server/server.pid
 
+bin/staticlint
+
 # Test binary, built with `go test -c`
 *.test
 
