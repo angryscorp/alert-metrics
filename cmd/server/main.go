@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -22,12 +23,20 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 )
 
+var (
+	buildVersion string
+	buildDate    string
+	buildCommit  string
+)
+
 func main() {
+	showBuildInfo()
+
 	config, err := server.NewConfig()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()
-		os.Exit(1)
+		log.Fatal(err.Error())
 	}
 
 	zeroLogger := zerolog.New(os.Stdout).With().Timestamp().Logger()
@@ -82,4 +91,20 @@ func storeSelector(config server.Config, logger *zerolog.Logger) (domain.MetricS
 	}
 
 	return metricstorage.NewMemoryMetricStorage(), nil
+}
+
+func showBuildInfo() {
+	if buildVersion == "" {
+		buildVersion = "N/A"
+	}
+
+	if buildDate == "" {
+		buildDate = "N/A"
+	}
+
+	if buildCommit == "" {
+		buildCommit = "N/A"
+	}
+
+	fmt.Printf("Build version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
 }
