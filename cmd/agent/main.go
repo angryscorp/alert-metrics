@@ -19,7 +19,15 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricworker"
 )
 
+var (
+	buildVersion string
+	buildDate    string
+	buildCommit  string
+)
+
 func main() {
+	showBuildInfo()
+
 	flags, err := agent.NewConfig()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
@@ -53,4 +61,20 @@ func main() {
 	worker.Start()
 
 	select {}
+}
+
+func showBuildInfo() {
+	if buildVersion == "" {
+		buildVersion = "N/A"
+	}
+
+	if buildDate == "" {
+		buildDate = "N/A"
+	}
+
+	if buildCommit == "" {
+		buildCommit = "N/A"
+	}
+
+	fmt.Printf("Build version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
 }
