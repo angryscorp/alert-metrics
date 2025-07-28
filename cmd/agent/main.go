@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/angryscorp/alert-metrics/internal/buildinfo"
+
 	"github.com/rs/zerolog"
 
 	"github.com/angryscorp/alert-metrics/internal/config/agent"
@@ -26,7 +28,7 @@ var (
 )
 
 func main() {
-	showBuildInfo()
+	fmt.Printf("%s", buildinfo.New(buildVersion, buildDate, buildCommit))
 
 	flags, err := agent.NewConfig()
 	if err != nil {
@@ -61,20 +63,4 @@ func main() {
 	worker.Start()
 
 	select {}
-}
-
-func showBuildInfo() {
-	if buildVersion == "" {
-		buildVersion = "N/A"
-	}
-
-	if buildDate == "" {
-		buildDate = "N/A"
-	}
-
-	if buildCommit == "" {
-		buildCommit = "N/A"
-	}
-
-	fmt.Printf("Build version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
 }

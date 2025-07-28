@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/angryscorp/alert-metrics/internal/buildinfo"
+
 	"github.com/angryscorp/alert-metrics/internal/http/handler"
 
 	"github.com/gin-contrib/gzip"
@@ -30,7 +32,7 @@ var (
 )
 
 func main() {
-	showBuildInfo()
+	fmt.Printf("%s", buildinfo.New(buildVersion, buildDate, buildCommit))
 
 	config, err := server.NewConfig()
 	if err != nil {
@@ -91,20 +93,4 @@ func storeSelector(config server.Config, logger *zerolog.Logger) (domain.MetricS
 	}
 
 	return metricstorage.NewMemoryMetricStorage(), nil
-}
-
-func showBuildInfo() {
-	if buildVersion == "" {
-		buildVersion = "N/A"
-	}
-
-	if buildDate == "" {
-		buildDate = "N/A"
-	}
-
-	if buildCommit == "" {
-		buildCommit = "N/A"
-	}
-
-	fmt.Printf("Build version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
 }
