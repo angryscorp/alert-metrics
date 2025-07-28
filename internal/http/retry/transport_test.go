@@ -69,9 +69,9 @@ func TestTransport_RoundTrip(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "http://example.com", nil)
 			resp, err := transport.RoundTrip(req)
-			defer func(Body io.ReadCloser) {
-				_ = Body.Close()
-			}(resp.Body)
+			defer func() {
+				_ = resp.Body.Close()
+			}()
 
 			if tt.expectError {
 				assert.Error(t, err)
