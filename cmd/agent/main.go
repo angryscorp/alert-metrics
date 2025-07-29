@@ -3,9 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/angryscorp/alert-metrics/internal/buildinfo"
 
 	"github.com/rs/zerolog"
 
@@ -18,12 +21,20 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricworker"
 )
 
+var (
+	buildVersion string
+	buildDate    string
+	buildCommit  string
+)
+
 func main() {
+	fmt.Printf("%s", buildinfo.New(buildVersion, buildDate, buildCommit))
+
 	flags, err := agent.NewConfig()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()
-		os.Exit(1)
+		log.Fatal(err.Error())
 	}
 
 	runtimeMonitor := metricmonitor.NewRuntimeMonitor(time.Duration(flags.PollIntervalInSeconds) * time.Second)

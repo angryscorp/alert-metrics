@@ -38,36 +38,6 @@ func (mw *MetricWorker) Start() {
 	go mw.startWorkerPool()
 }
 
-func (mw *MetricWorker) sendCurrentMetrics() {
-	metrics := mw.metricMonitor.GetMetrics()
-
-	// Send Gauge metrics
-	for key, value := range metrics.Gauges {
-		m := domain.Metric{
-			ID:    key,
-			MType: domain.MetricTypeGauge,
-			Value: &value,
-		}
-		mw.metricReporter.ReportMetric(m)
-	}
-
-	// Send Counter metrics
-	for key, value := range metrics.Counters {
-		m := domain.Metric{
-			ID:    key,
-			MType: domain.MetricTypeCounter,
-			Delta: &value,
-		}
-		mw.metricReporter.ReportMetric(m)
-	}
-
-	// Report interval
-	if mw.isRunning {
-		time.Sleep(mw.reportInterval)
-		go mw.sendCurrentMetrics()
-	}
-}
-
 func (mw *MetricWorker) Stop() {
 	mw.isRunning = false
 }

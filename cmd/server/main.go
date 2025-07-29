@@ -3,8 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"time"
+
+	"github.com/angryscorp/alert-metrics/internal/buildinfo"
 
 	"github.com/angryscorp/alert-metrics/internal/http/handler"
 
@@ -22,12 +25,20 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricstorage"
 )
 
+var (
+	buildVersion string
+	buildDate    string
+	buildCommit  string
+)
+
 func main() {
+	fmt.Printf("%s", buildinfo.New(buildVersion, buildDate, buildCommit))
+
 	config, err := server.NewConfig()
 	if err != nil {
 		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		flag.Usage()
-		os.Exit(1)
+		log.Fatal(err.Error())
 	}
 
 	zeroLogger := zerolog.New(os.Stdout).With().Timestamp().Logger()

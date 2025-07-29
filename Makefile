@@ -117,3 +117,8 @@ doc-stop:
 	else \
 		echo "No PID file found. Is godoc running?"; \
 	fi
+
+.PHONY: lint
+lint:
+	go build -o bin/staticlint ./cmd/staticlint
+	./bin/staticlint ./cmd/agent ./cmd/server ./internal/...

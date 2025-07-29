@@ -17,7 +17,8 @@ func Example_updateGaugeMetric() {
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_updateCounterMetric() {
@@ -30,7 +31,8 @@ func Example_updateCounterMetric() {
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_updateMetricJSON() {
@@ -50,7 +52,8 @@ func Example_updateMetricJSON() {
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_batchUpdateMetrics() {
@@ -70,7 +73,8 @@ func Example_batchUpdateMetrics() {
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_getMetric() {
@@ -83,7 +87,8 @@ func Example_getMetric() {
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_getMetricJSON() {
@@ -102,7 +107,8 @@ func Example_getMetricJSON() {
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_pingServer() {
@@ -114,7 +120,8 @@ func Example_pingServer() {
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 }
 
 func Example_getAllMetrics() {
@@ -126,5 +133,6 @@ func Example_getAllMetrics() {
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 }
