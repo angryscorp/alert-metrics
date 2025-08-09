@@ -13,6 +13,7 @@ type Config struct {
 	ReportIntervalInSeconds int    `env:"REPORT_INTERVAL"`
 	HashKey                 string `env:"KEY"`
 	RateLimit               int    `env:"RATE_LIMIT"`
+	PathToCryptoKey         string `env:"CRYPTO_KEY"`
 }
 
 func NewConfig() (Config, error) {
@@ -21,6 +22,7 @@ func NewConfig() (Config, error) {
 	reportIntervalInSeconds := flag.Int("r", 10, "Report interval in seconds (default: 10)")
 	hashKey := flag.String("k", "", "Key for calculating hash (default: none)")
 	rateLimit := flag.Int("l", 10, "Rate limit (default: 10)")
+	pathToCryptoKey := flag.String("crypto-key", "", "Path to a file with a public key (default: none)")
 
 	flag.Parse()
 
@@ -35,6 +37,7 @@ func NewConfig() (Config, error) {
 		PollIntervalInSeconds:   *pollIntervalInSeconds,
 		HashKey:                 *hashKey,
 		RateLimit:               *rateLimit,
+		PathToCryptoKey:         *pathToCryptoKey,
 	}
 
 	// ENV vars

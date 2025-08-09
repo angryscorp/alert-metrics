@@ -14,6 +14,7 @@ type Config struct {
 	ShouldRestore          bool   `env:"RESTORE"`
 	DatabaseDSN            string `env:"DATABASE_DSN"`
 	HashKey                string `env:"KEY"`
+	PathToCryptoKey        string `env:"CRYPTO_KEY"`
 }
 
 func NewConfig() (Config, error) {
@@ -23,6 +24,7 @@ func NewConfig() (Config, error) {
 	shouldRestore := flag.Bool("r", false, "Restore from file (default: false)")
 	databaseDSN := flag.String("d", "", "Database DSN (default: empty, file storage will be used)")
 	hashKey := flag.String("k", "", "Key for calculating hash (default: none)")
+	pathToCryptoKey := flag.String("crypto-key", "", "Path to a file with a private key (default: none)")
 
 	flag.Parse()
 
@@ -38,6 +40,7 @@ func NewConfig() (Config, error) {
 		ShouldRestore:          *shouldRestore,
 		DatabaseDSN:            *databaseDSN,
 		HashKey:                *hashKey,
+		PathToCryptoKey:        *pathToCryptoKey,
 	}
 
 	// ENV vars

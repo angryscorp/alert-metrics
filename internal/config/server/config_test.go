@@ -21,6 +21,7 @@ func TestNewConfig(t *testing.T) {
 			"RESTORE":           "true",
 			"DATABASE_DSN":      "postgres://user:pass@localhost/db",
 			"KEY":               "secret123",
+			"CRYPTO_KEY":        "file.pem",
 		}
 
 		expected := Config{
@@ -30,6 +31,7 @@ func TestNewConfig(t *testing.T) {
 			ShouldRestore:          true,
 			DatabaseDSN:            "postgres://user:pass@localhost/db",
 			HashKey:                "secret123",
+			PathToCryptoKey:        "file.pem",
 		}
 
 		for key, value := range envVars {
