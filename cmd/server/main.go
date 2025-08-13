@@ -7,17 +7,17 @@ import (
 	"os"
 	"time"
 
-	"github.com/angryscorp/alert-metrics/internal/buildinfo"
-
-	"github.com/angryscorp/alert-metrics/internal/http/handler"
-
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 
+	"github.com/angryscorp/alert-metrics/internal/buildinfo"
 	"github.com/angryscorp/alert-metrics/internal/config/server"
+	"github.com/angryscorp/alert-metrics/internal/crypto"
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	cryptohttp "github.com/angryscorp/alert-metrics/internal/http/crypto"
 	"github.com/angryscorp/alert-metrics/internal/http/gzipper"
+	"github.com/angryscorp/alert-metrics/internal/http/handler"
 	"github.com/angryscorp/alert-metrics/internal/http/hash"
 	"github.com/angryscorp/alert-metrics/internal/http/logger"
 	"github.com/angryscorp/alert-metrics/internal/http/router"
@@ -55,6 +55,14 @@ func main() {
 		Use(gzipper.UnzipMiddleware()).
 		Use(hash.NewHashValidator(config.HashKey)).
 		Use(gzip.Gzip(gzip.DefaultCompression))
+
+	if config.PathToCryptoKey != "" {
+		decrypter, err := crypto.NewPrivateKeyDecrypter(config.PathToCryptoKey)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		engine.Use(cryptohttp.DecrypterMiddleware(decrypter))
+	}
 
 	mr := router.New(engine)
 	mr.RegisterPingHandler(handler.NewPingHandler(store))
