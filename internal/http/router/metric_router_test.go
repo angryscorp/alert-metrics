@@ -6,15 +6,17 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMetricRouter(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	logger := zerolog.Nop()
 
 	t.Run("New router creation", func(t *testing.T) {
 		engine := gin.New()
-		metricRouter := New(engine)
+		metricRouter := New(engine, &logger)
 
 		assert.NotNil(t, metricRouter)
 		assert.Equal(t, engine, metricRouter.engine)
@@ -22,7 +24,7 @@ func TestMetricRouter(t *testing.T) {
 
 	t.Run("Router has required methods", func(t *testing.T) {
 		engine := gin.New()
-		metricRouter := New(engine)
+		metricRouter := New(engine, &logger)
 
 		assert.NotNil(t, metricRouter.RegisterPingHandler)
 		assert.NotNil(t, metricRouter.RegisterMetricsHandler)
@@ -32,7 +34,7 @@ func TestMetricRouter(t *testing.T) {
 
 	t.Run("Router registers routes correctly", func(t *testing.T) {
 		engine := gin.New()
-		metricRouter := New(engine)
+		metricRouter := New(engine, &logger)
 
 		metricRouter.engine.GET("/test", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"test": "ok"})
