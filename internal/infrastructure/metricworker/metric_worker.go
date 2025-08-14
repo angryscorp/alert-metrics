@@ -15,6 +15,7 @@ type MetricWorker struct {
 	rateLimiter    int
 	isRunning      bool
 	requestChan    chan []domain.Metric
+	stopChan       chan struct{}
 }
 
 func NewMetricWorker(
@@ -29,7 +30,14 @@ func NewMetricWorker(
 		reportInterval: reportInterval,
 		rateLimiter:    rateLimiter,
 		requestChan:    make(chan []domain.Metric),
+		stopChan:       make(chan struct{}),
 	}
+}
+
+func (mw *MetricWorker) RunWithGracefulShutdown(shutdownCh <-chan struct{}) {
+	mw.Start()
+	<-shutdownCh
+	mw.Stop()
 }
 
 func (mw *MetricWorker) Start() {

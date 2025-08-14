@@ -10,8 +10,8 @@ import (
 
 	"github.com/angryscorp/alert-metrics/internal/buildinfo"
 	"github.com/angryscorp/alert-metrics/internal/crypto"
-
 	cryptohttp "github.com/angryscorp/alert-metrics/internal/http/crypto"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/shutdown"
 
 	"github.com/rs/zerolog"
 
@@ -61,7 +61,8 @@ func main() {
 		time.Duration(flags.ReportIntervalInSeconds)*time.Second,
 		flags.RateLimit,
 	)
-	worker.Start()
+
+	worker.RunWithGracefulShutdown(shutdown.NewGracefulShutdownNotifier())
 
 	select {}
 }
