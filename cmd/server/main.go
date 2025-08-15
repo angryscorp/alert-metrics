@@ -7,17 +7,19 @@ import (
 	"os"
 	"time"
 
-	"github.com/angryscorp/alert-metrics/internal/buildinfo"
-
-	"github.com/angryscorp/alert-metrics/internal/http/handler"
-
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/shutdown"
+
+	"github.com/angryscorp/alert-metrics/internal/buildinfo"
 	"github.com/angryscorp/alert-metrics/internal/config/server"
+	"github.com/angryscorp/alert-metrics/internal/crypto"
 	"github.com/angryscorp/alert-metrics/internal/domain"
+	cryptohttp "github.com/angryscorp/alert-metrics/internal/http/crypto"
 	"github.com/angryscorp/alert-metrics/internal/http/gzipper"
+	"github.com/angryscorp/alert-metrics/internal/http/handler"
 	"github.com/angryscorp/alert-metrics/internal/http/hash"
 	"github.com/angryscorp/alert-metrics/internal/http/logger"
 	"github.com/angryscorp/alert-metrics/internal/http/router"
@@ -56,12 +58,21 @@ func main() {
 		Use(hash.NewHashValidator(config.HashKey)).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
-	mr := router.New(engine)
+	if config.PathToCryptoKey != "" {
+		decrypter, err := crypto.NewPrivateKeyDecrypter(config.PathToCryptoKey)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		engine.Use(cryptohttp.DecrypterMiddleware(decrypter))
+	}
+
+	mr := router.New(engine, &zeroLogger)
 	mr.RegisterPingHandler(handler.NewPingHandler(store))
 	mr.RegisterMetricsHandler(handler.NewMetricsHandler(store))
 	mr.RegisterMetricsJSONHandler(handler.NewMetricsJSONHandler(store))
 
-	if err = mr.Run(config.Address); err != nil {
+	shutdownCh := shutdown.NewGracefulShutdownNotifier()
+	if err = mr.Run(config.Address, shutdownCh); err != nil {
 		panic(err)
 	}
 }

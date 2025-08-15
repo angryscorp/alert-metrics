@@ -9,6 +9,9 @@ import (
 	"time"
 
 	"github.com/angryscorp/alert-metrics/internal/buildinfo"
+	"github.com/angryscorp/alert-metrics/internal/crypto"
+	cryptohttp "github.com/angryscorp/alert-metrics/internal/http/crypto"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/shutdown"
 
 	"github.com/rs/zerolog"
 
@@ -43,11 +46,9 @@ func main() {
 	metricReporter := metricreporter.NewHTTPMetricReporter(
 		"http://"+flags.Address,
 		&http.Client{
-			Transport: retry.New(
-				hash.NewHashTransport(
-					gzipper.NewGzipTransport(http.DefaultTransport),
-					flags.HashKey,
-				),
+			Transport: buildTransport(
+				flags.PathToCryptoKey,
+				flags.HashKey,
 				[]time.Duration{time.Second, time.Second * 3, time.Second * 5},
 				zerolog.New(os.Stdout).With().Timestamp().Logger(),
 			),
@@ -60,7 +61,33 @@ func main() {
 		time.Duration(flags.ReportIntervalInSeconds)*time.Second,
 		flags.RateLimit,
 	)
-	worker.Start()
+
+	worker.RunWithGracefulShutdown(shutdown.NewGracefulShutdownNotifier())
 
 	select {}
+}
+
+func buildTransport(cryptoKeyPath, hashKey string, retryIntervals []time.Duration, logger zerolog.Logger) http.RoundTripper {
+	// Base transport
+	transport := http.DefaultTransport
+
+	// Gzip transport
+	transport = gzipper.NewGzipTransport(transport)
+
+	// Crypto transport
+	if cryptoKeyPath != "" {
+		encryptor, err := crypto.NewPublicKeyEncrypter(cryptoKeyPath)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		transport = cryptohttp.EncryptorMiddleware(encryptor)(transport)
+	}
+
+	// Hash transport
+	transport = hash.NewHashTransport(transport, hashKey)
+
+	// Retry transport
+	transport = retry.New(transport, retryIntervals, logger)
+
+	return transport
 }

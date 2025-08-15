@@ -20,6 +20,7 @@ func TestNewConfig(t *testing.T) {
 			"REPORT_INTERVAL": "30",
 			"KEY":             "secret123",
 			"RATE_LIMIT":      "20",
+			"CRYPTO_KEY":      "file.pem",
 		}
 
 		expected := Config{
@@ -28,6 +29,7 @@ func TestNewConfig(t *testing.T) {
 			ReportIntervalInSeconds: 30,
 			HashKey:                 "secret123",
 			RateLimit:               20,
+			PathToCryptoKey:         "file.pem",
 		}
 
 		for key, value := range envVars {
