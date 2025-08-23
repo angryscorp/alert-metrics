@@ -11,6 +11,7 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/buildinfo"
 	"github.com/angryscorp/alert-metrics/internal/crypto"
 	cryptohttp "github.com/angryscorp/alert-metrics/internal/http/crypto"
+	"github.com/angryscorp/alert-metrics/internal/http/realip"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/shutdown"
 
 	"github.com/rs/zerolog"
@@ -70,6 +71,9 @@ func main() {
 func buildTransport(cryptoKeyPath, hashKey string, retryIntervals []time.Duration, logger zerolog.Logger) http.RoundTripper {
 	// Base transport
 	transport := http.DefaultTransport
+
+	// Real IP transport
+	transport = realip.New(transport)
 
 	// Gzip transport
 	transport = gzipper.NewGzipTransport(transport)
