@@ -53,18 +53,23 @@ func NewConfig() (Config, error) {
 	if *address != "" {
 		config.Address = *address
 	}
+
 	if *pollIntervalInSeconds != -1 {
 		config.PollIntervalInSeconds = *pollIntervalInSeconds
 	}
+
 	if *reportIntervalInSeconds != -1 {
 		config.ReportIntervalInSeconds = *reportIntervalInSeconds
 	}
+
 	if *rateLimit != -1 {
 		config.RateLimit = *rateLimit
 	}
+
 	if *hashKey != "" {
 		config.HashKey = *hashKey
 	}
+
 	if *pathToCryptoKey != "" {
 		config.PathToCryptoKey = *pathToCryptoKey
 	}
