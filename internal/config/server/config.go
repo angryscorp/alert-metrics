@@ -17,7 +17,7 @@ type Config struct {
 	DatabaseDSN            string `env:"DATABASE_DSN" json:"database_dsn"`
 	HashKey                string `env:"KEY"`
 	PathToCryptoKey        string `env:"CRYPTO_KEY" json:"crypto_key"`
-	IsSubnetTrusted        string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
+	TrustedSubnet          string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 }
 
 func NewConfig() (Config, error) {
@@ -83,7 +83,7 @@ func NewConfig() (Config, error) {
 	}
 
 	if *isSubnetTrusted != "" {
-		config.IsSubnetTrusted = *isSubnetTrusted
+		config.TrustedSubnet = *isSubnetTrusted
 	}
 
 	// ENV vars

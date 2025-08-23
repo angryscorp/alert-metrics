@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/angryscorp/alert-metrics/internal/http/subnet"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
@@ -56,6 +57,7 @@ func main() {
 		Use(gin.Recovery()).
 		Use(gzipper.UnzipMiddleware()).
 		Use(hash.NewHashValidator(config.HashKey)).
+		Use(subnet.NewTrustedSubnetMiddleware(config.TrustedSubnet)).
 		Use(gzip.Gzip(gzip.DefaultCompression))
 
 	if config.PathToCryptoKey != "" {
