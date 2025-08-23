@@ -16,6 +16,7 @@ type Config struct {
 	HashKey                 string `env:"KEY"`
 	RateLimit               int    `env:"RATE_LIMIT"`
 	PathToCryptoKey         string `env:"CRYPTO_KEY" json:"crypto_key"`
+	IsSubnetTrusted         string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 }
 
 func NewConfig() (Config, error) {
@@ -28,6 +29,7 @@ func NewConfig() (Config, error) {
 	hashKey := flag.String("k", "", "Key for calculating hash (default: none)")
 	rateLimit := flag.Int("l", 10, "Rate limit (default: 10)")
 	pathToCryptoKey := flag.String("crypto-key", "", "Path to a file with a public key (default: none)")
+	isSubnetTrusted := flag.String("t", "", "Path to a file with a public key (default: none)")
 
 	flag.Parse()
 
@@ -53,20 +55,29 @@ func NewConfig() (Config, error) {
 	if *address != "" {
 		config.Address = *address
 	}
+
 	if *pollIntervalInSeconds != -1 {
 		config.PollIntervalInSeconds = *pollIntervalInSeconds
 	}
+
 	if *reportIntervalInSeconds != -1 {
 		config.ReportIntervalInSeconds = *reportIntervalInSeconds
 	}
+
 	if *rateLimit != -1 {
 		config.RateLimit = *rateLimit
 	}
+
 	if *hashKey != "" {
 		config.HashKey = *hashKey
 	}
+
 	if *pathToCryptoKey != "" {
 		config.PathToCryptoKey = *pathToCryptoKey
+	}
+
+	if *isSubnetTrusted != "" {
+		config.IsSubnetTrusted = *isSubnetTrusted
 	}
 
 	// ENV vars
