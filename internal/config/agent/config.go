@@ -79,7 +79,7 @@ func NewConfig() (Config, error) {
 	if flag.Lookup("g").Value.String() == "true" {
 		config.UseGRPC = *useGRPC
 	}
-	
+
 	// ENV vars
 	err = env.Parse(&config)
 	if err != nil {

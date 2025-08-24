@@ -10,8 +10,11 @@ import (
 
 	"github.com/angryscorp/alert-metrics/internal/buildinfo"
 	"github.com/angryscorp/alert-metrics/internal/crypto"
+	"github.com/angryscorp/alert-metrics/internal/domain"
+	grpcclient "github.com/angryscorp/alert-metrics/internal/grpc/client"
 	cryptohttp "github.com/angryscorp/alert-metrics/internal/http/crypto"
 	"github.com/angryscorp/alert-metrics/internal/http/realip"
+	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricreporter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/shutdown"
 
 	"github.com/rs/zerolog"
@@ -21,7 +24,6 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/http/hash"
 	"github.com/angryscorp/alert-metrics/internal/http/retry"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricmonitor"
-	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricreporter"
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/metricworker"
 )
 
@@ -44,21 +46,9 @@ func main() {
 	runtimeMonitor := metricmonitor.NewRuntimeMonitor(time.Duration(flags.PollIntervalInSeconds) * time.Second)
 	runtimeMonitor.Start()
 
-	metricReporter := metricreporter.NewHTTPMetricReporter(
-		"http://"+flags.Address,
-		&http.Client{
-			Transport: buildTransport(
-				flags.PathToCryptoKey,
-				flags.HashKey,
-				[]time.Duration{time.Second, time.Second * 3, time.Second * 5},
-				zerolog.New(os.Stdout).With().Timestamp().Logger(),
-			),
-		},
-	)
-
 	worker := metricworker.NewMetricWorker(
 		runtimeMonitor,
-		metricReporter,
+		initMetricReporter(flags),
 		time.Duration(flags.ReportIntervalInSeconds)*time.Second,
 		flags.RateLimit,
 	)
@@ -94,4 +84,28 @@ func buildTransport(cryptoKeyPath, hashKey string, retryIntervals []time.Duratio
 	transport = retry.New(transport, retryIntervals, logger)
 
 	return transport
+}
+
+func initMetricReporter(cfg agent.Config) domain.MetricReporter {
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+
+	if cfg.UseGRPC {
+		metricReporter, err := grpcclient.New("sf", logger)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		return metricReporter
+	}
+
+	return metricreporter.NewHTTPMetricReporter(
+		"http://"+cfg.Address,
+		&http.Client{
+			Transport: buildTransport(
+				cfg.PathToCryptoKey,
+				cfg.HashKey,
+				[]time.Duration{time.Second, time.Second * 3, time.Second * 5},
+				logger,
+			),
+		},
+	)
 }

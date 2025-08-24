@@ -7,10 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/angryscorp/alert-metrics/internal/http/subnet"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+
+	"github.com/angryscorp/alert-metrics/internal/http/subnet"
 
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/shutdown"
 
