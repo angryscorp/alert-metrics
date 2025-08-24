@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+option go_package = "grpc/metrics";
+
+// MetricType represents the type of metric
+enum MetricType {
+  METRIC_TYPE_UNSPECIFIED = 0;
+  METRIC_TYPE_COUNTER = 1;
+  METRIC_TYPE_GAUGE = 2;
+}
+
+// Metric represents a single metric
+message Metric {
+  string id = 1;
+  MetricType type = 2;
+  optional int64 delta = 3;   // for counter metrics
+  optional double value = 4;  // for gauge metrics
+}
+
+// ReportRawMetricRequest for ReportRawMetric method
+message ReportRawMetricRequest {
+  MetricType metric_type = 1;
+  string key = 2;
+  string value = 3;
+}
+
+// ReportMetricRequest for ReportMetric method
+message ReportMetricRequest {
+  Metric metric = 1;
+}
+
+// ReportBatchRequest for ReportBatch method
+message ReportBatchRequest {
+  repeated Metric metrics = 1;
+}
+
+message Empty {}
+
+// MetricsService defines the gRPC service for metrics reporting
+service MetricsService {
+  // ReportRawMetric reports a raw metric with string value
+  rpc ReportRawMetric(ReportRawMetricRequest) returns (Empty);
+
+  // ReportMetric reports a single structured metric
+  rpc ReportMetric(ReportMetricRequest) returns (Empty);
+
+  // ReportBatch reports multiple metrics in batch
+  rpc ReportBatch(ReportBatchRequest) returns (Empty);
+}
+
+
