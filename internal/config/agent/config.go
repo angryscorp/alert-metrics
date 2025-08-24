@@ -16,6 +16,7 @@ type Config struct {
 	HashKey                 string `env:"KEY"`
 	RateLimit               int    `env:"RATE_LIMIT"`
 	PathToCryptoKey         string `env:"CRYPTO_KEY" json:"crypto_key"`
+	UseGRPC                 bool   `env:"USE_GRPC" json:"use_grpc"`
 }
 
 func NewConfig() (Config, error) {
@@ -28,6 +29,7 @@ func NewConfig() (Config, error) {
 	hashKey := flag.String("k", "", "Key for calculating hash (default: none)")
 	rateLimit := flag.Int("l", 10, "Rate limit (default: 10)")
 	pathToCryptoKey := flag.String("crypto-key", "", "Path to a file with a public key (default: none)")
+	useGRPC := flag.Bool("g", false, "Use GRPC instead of HTTP (default: false)")
 
 	flag.Parse()
 
@@ -74,6 +76,10 @@ func NewConfig() (Config, error) {
 		config.PathToCryptoKey = *pathToCryptoKey
 	}
 
+	if flag.Lookup("g").Value.String() == "true" {
+		config.UseGRPC = *useGRPC
+	}
+	
 	// ENV vars
 	err = env.Parse(&config)
 	if err != nil {

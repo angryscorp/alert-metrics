@@ -18,6 +18,7 @@ type Config struct {
 	HashKey                string `env:"KEY"`
 	PathToCryptoKey        string `env:"CRYPTO_KEY" json:"crypto_key"`
 	TrustedSubnet          string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
+	UseGRPC                bool   `env:"USE_GRPC" json:"use_grpc"`
 }
 
 func NewConfig() (Config, error) {
@@ -32,6 +33,7 @@ func NewConfig() (Config, error) {
 	hashKey := flag.String("k", "", "Key for calculating hash (default: none)")
 	pathToCryptoKey := flag.String("crypto-key", "", "Path to a file with a private key (default: none)")
 	isSubnetTrusted := flag.String("t", "", "Path to a file with a public key (default: none)")
+	useGRPC := flag.Bool("g", false, "Use also GRPC for incoming requests (default: false)")
 
 	flag.Parse()
 
@@ -84,6 +86,10 @@ func NewConfig() (Config, error) {
 
 	if *isSubnetTrusted != "" {
 		config.TrustedSubnet = *isSubnetTrusted
+	}
+
+	if flag.Lookup("g").Value.String() == "true" {
+		config.UseGRPC = *useGRPC
 	}
 
 	// ENV vars
