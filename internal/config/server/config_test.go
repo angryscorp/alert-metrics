@@ -22,6 +22,8 @@ func TestNewConfig(t *testing.T) {
 			"DATABASE_DSN":      "postgres://user:pass@localhost/db",
 			"KEY":               "secret123",
 			"CRYPTO_KEY":        "file.pem",
+			"USE_GRPC":          "true",
+			"GRPC_ADDRESS":      "example.com:433",
 		}
 
 		expected := Config{
@@ -32,6 +34,8 @@ func TestNewConfig(t *testing.T) {
 			DatabaseDSN:            "postgres://user:pass@localhost/db",
 			HashKey:                "secret123",
 			PathToCryptoKey:        "file.pem",
+			UseGRPC:                true,
+			GRPCAddress:            "example.com:433",
 		}
 
 		for key, value := range envVars {
