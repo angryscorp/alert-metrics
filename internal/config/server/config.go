@@ -19,7 +19,7 @@ type Config struct {
 	PathToCryptoKey        string `env:"CRYPTO_KEY" json:"crypto_key"`
 	TrustedSubnet          string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
 	UseGRPC                bool   `env:"USE_GRPC" json:"use_grpc"`
-	GRPCAddress            string `env:"GRPC _ADDRESS" json:"grpc_address"`
+	GRPCAddress            string `env:"GRPC_ADDRESS" json:"grpc_address"`
 }
 
 func NewConfig() (Config, error) {

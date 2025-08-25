@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/gin-contrib/gzip"
@@ -14,6 +15,8 @@ import (
 	"github.com/angryscorp/alert-metrics/internal/http/subnet"
 
 	"github.com/angryscorp/alert-metrics/internal/infrastructure/shutdown"
+
+	grpcserver "github.com/angryscorp/alert-metrics/internal/grpc/server"
 
 	"github.com/angryscorp/alert-metrics/internal/buildinfo"
 	"github.com/angryscorp/alert-metrics/internal/config/server"
@@ -52,31 +55,44 @@ func main() {
 		panic(err)
 	}
 
-	engine := gin.New()
-	engine.
-		Use(logger.New(zeroLogger)).
-		Use(gin.Recovery()).
-		Use(gzipper.UnzipMiddleware()).
-		Use(hash.NewHashValidator(config.HashKey)).
-		Use(subnet.NewTrustedSubnetMiddleware(config.TrustedSubnet)).
-		Use(gzip.Gzip(gzip.DefaultCompression))
-
-	if config.PathToCryptoKey != "" {
-		decrypter, err := crypto.NewPrivateKeyDecrypter(config.PathToCryptoKey)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		engine.Use(cryptohttp.DecrypterMiddleware(decrypter))
+	shutdownCh := shutdown.NewGracefulShutdownNotifier()
+	serverCount := 1 // HTTP always running
+	if config.UseGRPC {
+		serverCount = 2 // + gRPC server
 	}
 
-	mr := router.New(engine, &zeroLogger)
-	mr.RegisterPingHandler(handler.NewPingHandler(store))
-	mr.RegisterMetricsHandler(handler.NewMetricsHandler(store))
-	mr.RegisterMetricsJSONHandler(handler.NewMetricsJSONHandler(store))
+	var wg sync.WaitGroup
+	errChan := make(chan error, serverCount)
 
-	shutdownCh := shutdown.NewGracefulShutdownNotifier()
-	if err = mr.Run(config.Address, shutdownCh); err != nil {
-		panic(err)
+	// HTTP server always running
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := runHTTPServer(config, store, zeroLogger, shutdownCh); err != nil {
+			errChan <- fmt.Errorf("HTTP server error: %w", err)
+		}
+	}()
+
+	// gRPC server is optional
+	if config.UseGRPC {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := runGRPCServer(config, store, zeroLogger, shutdownCh); err != nil {
+				errChan <- fmt.Errorf("gRPC server error: %w", err)
+			}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	for err := range errChan {
+		if err != nil {
+			log.Printf("Server error: %v", err)
+		}
 	}
 }
 
@@ -107,4 +123,38 @@ func storeSelector(config server.Config, logger *zerolog.Logger) (domain.MetricS
 	}
 
 	return metricstorage.NewMemoryMetricStorage(), nil
+}
+
+func runHTTPServer(config server.Config, store domain.MetricStorage, zeroLogger zerolog.Logger, shutdownCh <-chan struct{}) error {
+	engine := gin.New()
+	engine.
+		Use(logger.New(zeroLogger)).
+		Use(gin.Recovery()).
+		Use(gzipper.UnzipMiddleware()).
+		Use(hash.NewHashValidator(config.HashKey)).
+		Use(subnet.NewTrustedSubnetMiddleware(config.TrustedSubnet)).
+		Use(gzip.Gzip(gzip.DefaultCompression))
+
+	if config.PathToCryptoKey != "" {
+		decrypter, err := crypto.NewPrivateKeyDecrypter(config.PathToCryptoKey)
+		if err != nil {
+			return fmt.Errorf("failed to create decrypter: %w", err)
+		}
+		engine.Use(cryptohttp.DecrypterMiddleware(decrypter))
+	}
+
+	mr := router.New(engine, &zeroLogger)
+	mr.RegisterPingHandler(handler.NewPingHandler(store))
+	mr.RegisterMetricsHandler(handler.NewMetricsHandler(store))
+	mr.RegisterMetricsJSONHandler(handler.NewMetricsJSONHandler(store))
+
+	zeroLogger.Info().Str("address", config.Address).Msg("starting HTTP server")
+	return mr.Run(config.Address, shutdownCh)
+}
+
+func runGRPCServer(config server.Config, store domain.MetricStorage, zeroLogger zerolog.Logger, shutdownCh <-chan struct{}) error {
+	grpcSrv := grpcserver.NewGRPCServer(store, zeroLogger)
+
+	zeroLogger.Info().Str("address", config.GRPCAddress).Msg("starting gRPC server")
+	return grpcSrv.Run(config.GRPCAddress, shutdownCh)
 }
