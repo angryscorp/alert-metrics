@@ -122,3 +122,13 @@ doc-stop:
 lint:
 	go build -o bin/staticlint ./cmd/staticlint
 	./bin/staticlint ./cmd/agent ./cmd/server ./internal/...
+
+.PHONY: proto
+proto:
+	@echo "Generating protobuf files..."
+	@mkdir -p pkg/api/metrics/v1
+	protoc \
+		--go_out=internal \
+		--go-grpc_out=internal \
+		internal/grpc/proto/metrics.proto
+	@echo "Protobuf generation completed"

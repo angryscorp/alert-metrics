@@ -17,6 +17,9 @@ type Config struct {
 	DatabaseDSN            string `env:"DATABASE_DSN" json:"database_dsn"`
 	HashKey                string `env:"KEY"`
 	PathToCryptoKey        string `env:"CRYPTO_KEY" json:"crypto_key"`
+	TrustedSubnet          string `env:"TRUSTED_SUBNET" json:"trusted_subnet"`
+	UseGRPC                bool   `env:"USE_GRPC" json:"use_grpc"`
+	GRPCAddress            string `env:"GRPC_ADDRESS" json:"grpc_address"`
 }
 
 func NewConfig() (Config, error) {
@@ -30,6 +33,9 @@ func NewConfig() (Config, error) {
 	databaseDSN := flag.String("d", "", "Database DSN (default: empty, file storage will be used)")
 	hashKey := flag.String("k", "", "Key for calculating hash (default: none)")
 	pathToCryptoKey := flag.String("crypto-key", "", "Path to a file with a private key (default: none)")
+	isSubnetTrusted := flag.String("t", "", "Path to a file with a public key (default: none)")
+	useGRPC := flag.Bool("g", false, "Use also GRPC for incoming requests (default: false)")
+	grpcAddress := flag.String("ga", "localhost:443", "gRPC server address (default: localhost:443)")
 
 	flag.Parse()
 
@@ -55,23 +61,41 @@ func NewConfig() (Config, error) {
 	if *address != "" {
 		config.Address = *address
 	}
+
 	if *storeIntervalInSeconds != -1 {
 		config.StoreIntervalInSeconds = *storeIntervalInSeconds
 	}
+
 	if *fileStoragePath != "" {
 		config.FileStoragePath = *fileStoragePath
 	}
+
 	if flag.Lookup("r").Value.String() == "true" {
 		config.ShouldRestore = *shouldRestore
 	}
+
 	if *databaseDSN != "" {
 		config.DatabaseDSN = *databaseDSN
 	}
+
 	if *hashKey != "" {
 		config.HashKey = *hashKey
 	}
+
 	if *pathToCryptoKey != "" {
 		config.PathToCryptoKey = *pathToCryptoKey
+	}
+
+	if *isSubnetTrusted != "" {
+		config.TrustedSubnet = *isSubnetTrusted
+	}
+
+	if flag.Lookup("g").Value.String() == "true" {
+		config.UseGRPC = *useGRPC
+	}
+
+	if *grpcAddress != "" {
+		config.GRPCAddress = *grpcAddress
 	}
 
 	// ENV vars
